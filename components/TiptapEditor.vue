@@ -286,56 +286,24 @@ const formatHTML = (html: string): string => {
 };
 
 const editorOptions = {
-  theme: "vs",
+  theme: "vs-dark",
   language: "html",
   fontSize: 13,
-  lineNumbers: "on",
-  renderWhitespace: "selection",
-  minimap: {
-    enabled: true,
-    scale: 1,
-    showSlider: "mouseover",
-  },
-  scrollBeyondLastLine: false,
-  wordWrap: "on",
-  lineHeight: 20,
-  padding: { top: 16, bottom: 16 },
-  folding: true,
-  foldingHighlight: true,
-  foldingStrategy: "indentation",
-  showFoldingControls: "always",
-  bracketPairColorization: {
-    enabled: true,
-  },
-  autoClosingBrackets: "always",
-  autoClosingQuotes: "always",
-  autoClosingTags: true,
-  formatOnType: true,
   formatOnPaste: true,
+  formatOnType: true,
+  autoClosingTags: true,
+  autoClosingBrackets: "always",
   autoIndent: "advanced",
   tabSize: 2,
-  automaticLayout: true,
-  scrollbar: {
-    vertical: "visible",
-    horizontal: "visible",
-    useShadows: false,
-    verticalHasArrows: false,
-    horizontalHasArrows: false,
-    verticalScrollbarSize: 10,
-    horizontalScrollbarSize: 10,
-  },
-  suggest: {
-    snippetsPreventQuickSuggestions: false,
-    showWords: false,
-    showClasses: true,
-    showTags: true,
-    showAttributes: true,
-  },
-  quickSuggestions: {
-    other: true,
-    comments: false,
-    strings: true,
-  },
+  minimap: { enabled: true },
+  wordWrap: "on",
+  bracketPairColorization: { enabled: true },
+  // Add these HTML-specific formatting options
+  "editor.defaultFormatter": "vscode.html-language-features",
+  "html.format.enable": true,
+  "html.format.preserveNewLines": true,
+  "html.format.maxPreserveNewLines": 2,
+  "html.format.indentInnerHtml": true,
 };
 
 const CustomDocument = Document.extend({
@@ -407,10 +375,14 @@ onMounted(() => {
 
       // Schedule content update
       setTimeout(() => {
-        const formattedContent = formatHTML(content);
-        localContent.value = formattedContent;
-        previewContent.value = formattedContent;
-        emit("update:content", formattedContent);
+        //const formattedContent = formatHTML(content);
+        // localContent.value = formattedContent;
+        // previewContent.value = formattedContent;
+        // emit("update:content", formattedContent);
+
+        localContent.value = content;
+        previewContent.value = content;
+        emit("update:content", content);
 
         // Restore cursor position after state updates
         if (editor.value) {
@@ -425,19 +397,22 @@ onMounted(() => {
 
   if (props.content) {
     const parsedContent = parseMarkdownToHTML(props.content);
-    const formattedContent = formatHTML(parsedContent);
-    editor.value.commands.setContent(formattedContent, false, {
+    //const formattedContent = formatHTML(parsedContent);
+    editor.value.commands.setContent(parsedContent, false, {
       preserveWhitespace: "full",
     });
-    localContent.value = formattedContent;
-    originalContent.value = formattedContent;
-    previewContent.value = formattedContent;
+    // localContent.value = formattedContent;
+    // originalContent.value = formattedContent;
+    // previewContent.value = formattedContent;
+    localContent.value = parsedContent;
+    originalContent.value = parsedContent;
+    previewContent.value = parsedContent;
   }
 
   const initialContent = editor.value.getHTML();
   if (initialContent) {
-    const formattedContent = formatHTML(initialContent);
-    emit("update:content", formattedContent);
+    //  const formattedContent = formatHTML(initialContent);
+    emit("update:content", initialContent);
   }
 
   editorInitialized.value = true;
@@ -484,9 +459,9 @@ watch(
     }
 
     // Update local state without affecting original content
-    const formattedContent = formatHTML(parsedContent);
-    localContent.value = formattedContent;
-    previewContent.value = formattedContent;
+    // const formattedContent = formatHTML(parsedContent);
+    localContent.value = parsedContent;
+    previewContent.value = parsedContent;
   },
   { deep: true }
 );
@@ -731,25 +706,6 @@ onBeforeUnmount(() => {
   background: white;
 }
 
-.debug-info {
-  position: fixed;
-  top: 0;
-  right: 0;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 10px;
-  font-family: monospace;
-  font-size: 12px;
-  max-width: 400px;
-  overflow: auto;
-}
-
-.debug-panel pre {
-  margin: 5px 0;
-  white-space: pre-wrap;
-}
-
 .editor-layout {
   flex: 1;
   display: flex;
@@ -761,7 +717,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: white;
 }
 
 .editor-content {
@@ -769,89 +724,26 @@ onBeforeUnmount(() => {
   position: relative;
   display: flex;
   flex-direction: column;
-  background: white;
   overflow: hidden;
 }
 
+/* Remove padding from editor and preview containers */
 .markdown-editor {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
-  background: white;
-}
-
-.markdown-editor.has-changes {
-  background: #fafafa;
 }
 
 .preview-wrapper {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
-  background: white;
 }
 
-.preview-content {
-  max-width: 720px;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-}
-
-.prose {
-  color: #000000;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.prose h1 {
-  font-size: 2em;
-  margin: 1.2em 0 0.6em;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.prose h2 {
-  font-size: 1.5em;
-  margin: 1em 0 0.5em;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.prose p {
-  margin: 1em 0;
-}
-
-.prose ul,
-.prose ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
-}
-
-.prose li {
-  margin: 0.5em 0;
-}
-
-.prose img {
-  max-width: 100%;
-  height: auto;
-  margin: 1.5em 0;
-}
-
-.prose-editor {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  color: #000000;
-}
-
+/* Toolbar styles */
 .editor-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 1rem;
-  background: white;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -860,7 +752,6 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-  background: white;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -896,50 +787,15 @@ onBeforeUnmount(() => {
   background: #3651d4;
 }
 
-.toolbar-button.active {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.toolbar-button.loading {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
 .file-path {
   color: #374151;
   font-size: 0.875rem;
 }
 
-.login-prompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 2rem;
-  background: #1e1e1e;
-  color: #cccccc;
-}
-
-.login-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #3c3c3c;
-  border-radius: 4px;
-  background: #252526;
-  color: #cccccc;
-  cursor: pointer;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.login-button:hover {
-  background: #2d2d2d;
-}
-
+/* Raw editor styles */
 .raw-content-wrapper {
   flex: 1;
   display: flex;
-  background: #1e1e1e;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -948,54 +804,5 @@ onBeforeUnmount(() => {
 .monaco-editor {
   width: 100%;
   height: 100%;
-}
-
-.prose-editor h1 {
-  font-size: 2em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor h2 {
-  font-size: 1.5em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor h3 {
-  font-size: 1.25em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor p {
-  margin: 1em 0;
-}
-
-.prose-editor ul,
-.prose-editor ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
-}
-
-.prose-editor li {
-  margin: 0.5em 0;
-}
-
-.prose-editor img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 1.5em 0;
-  background: #f5f5f5;
-  padding: 2rem;
-  border-radius: 4px;
-}
-
-.color-wheel-node {
-  margin: 1rem 0;
-  padding: 1rem;
-  background: #f5f5f5;
-  border-radius: 4px;
 }
 </style>

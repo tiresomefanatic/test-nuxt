@@ -1,0 +1,9 @@
+# content/design/_dir.yml
+title: Design
+description: Design system guidelines and documentation
+navigation: true
+items:
+  - title: Overview
+    path: /design
+  - title: Foundation
+    path: /design/foundation

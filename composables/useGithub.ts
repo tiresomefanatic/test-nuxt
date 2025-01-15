@@ -356,7 +356,7 @@ export const useGithub = () => {
     try {
       const { data } = await octokit.rest.pulls.list({
         owner: "tiresomefanatic",
-        repo: "heroechotemp",
+        repo: "test-nuxt",
         state: "open",
       });
 
@@ -364,7 +364,7 @@ export const useGithub = () => {
         data.map(async (pr) => {
           const { data: prDetails } = await octokit.rest.pulls.get({
             owner: "tiresomefanatic",
-            repo: "heroechotemp",
+            repo: "test-nuxt",
             pull_number: pr.number,
           });
           return prDetails;
@@ -385,7 +385,7 @@ export const useGithub = () => {
     try {
       const { data } = await octokit.rest.repos.listCommits({
         owner: "tiresomefanatic",
-        repo: "heroechotemp",
+        repo: "test-nuxt",
         per_page: 10,
       });
 
@@ -407,7 +407,7 @@ export const useGithub = () => {
     try {
       const { data: pr } = await octokit.rest.pulls.get({
         owner: "tiresomefanatic",
-        repo: "heroechotemp",
+        repo: "test-nuxt",
         pull_number: prNumber,
       });
 
@@ -415,7 +415,7 @@ export const useGithub = () => {
 
       await createNewBranch(
         "tiresomefanatic",
-        "heroechotemp",
+        "test-nuxt",
         pr.base.ref,
         resolutionBranch
       );
@@ -424,13 +424,13 @@ export const useGithub = () => {
         resolution === "ours"
           ? await fetchFileContent(
               "tiresomefanatic",
-              "heroechotemp",
+              "test-nuxt",
               filePath,
               pr.base.ref
             )
           : await fetchFileContent(
               "tiresomefanatic",
-              "heroechotemp",
+              "test-nuxt",
               filePath,
               pr.head.ref
             );
@@ -441,7 +441,7 @@ export const useGithub = () => {
 
       await saveFileContent(
         "tiresomefanatic",
-        "heroechotemp",
+        "test-nuxt",
         filePath,
         content,
         `Resolve conflict in ${filePath} using ${resolution} changes`,
@@ -463,7 +463,7 @@ export const useGithub = () => {
       console.log("Fetching branches...");
       const { data } = await octokit.rest.repos.listBranches({
         owner: "tiresomefanatic",
-        repo: "heroechotemp",
+        repo: "test-nuxt",
       });
 
       console.log(
@@ -499,14 +499,14 @@ export const useGithub = () => {
       // Get current branch's latest commit
       const { data: currentRef } = await octokit.rest.git.getRef({
         owner: "tiresomefanatic",
-        repo: "heroechotemp",
+        repo: "test-nuxt",
         ref: `heads/${currentBranch.value}`,
       });
 
       // Create new branch from current branch
       await octokit.rest.git.createRef({
         owner: "tiresomefanatic",
-        repo: "heroechotemp",
+        repo: "test-nuxt",
         ref: `refs/heads/${branchName}`,
         sha: currentRef.object.sha,
       });
@@ -535,7 +535,7 @@ export const useGithub = () => {
       // Verify branch exists
       const { data } = await octokit.rest.repos.getBranch({
         owner: "tiresomefanatic",
-        repo: "heroechotemp",
+        repo: "test-nuxt",
         branch: branchName,
       });
 

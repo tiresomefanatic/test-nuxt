@@ -123,7 +123,7 @@ const checkContentFreshness = async () => {
   try {
     // Use GitHub API to get latest commit for the file
     const response = await fetch(
-      `https://api.github.com/repos/tiresomefanatic/heroechotemp/commits?path=${contentPath.value}&sha=${currentBranch.value}`,
+      `https://api.github.com/repos/tiresomefanatic/test-nuxt/commits?path=${contentPath.value}&sha=${currentBranch.value}`,
       { headers: { Accept: "application/vnd.github.v3+json" } }
     );
 
@@ -163,7 +163,7 @@ const loadContent = async (force = false) => {
       // Get raw content from GitHub
       const content = await getRawContent(
         "tiresomefanatic",
-        "heroechotemp",
+        "test-nuxt",
         contentPath.value,
         currentBranch.value
       );
@@ -274,7 +274,7 @@ const handleSave = async (content: string) => {
     console.log(`Saving content to branch: ${currentBranch.value}`);
     const result = await saveFileContent(
       "tiresomefanatic",
-      "heroechotemp",
+      "test-nuxt",
       contentPath.value,
       content,
       `Update ${contentPath.value}`,
@@ -483,7 +483,6 @@ onMounted(() => {
 .sidebar {
   width: 240px;
   flex-shrink: 0;
-  border-right: 1px solid #e5e7eb;
   background: white;
 }
 

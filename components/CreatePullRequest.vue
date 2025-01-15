@@ -149,7 +149,7 @@ const handleSubmit = async () => {
   try {
     const result = await createNewPullRequest(
       "tiresomefanatic",
-      "heroechotemp",
+      "test-nuxt",
       baseBranch.value,
       headBranch.value,
       title.value,

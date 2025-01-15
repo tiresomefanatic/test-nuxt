@@ -1,32 +1,33 @@
 <div style="max-width: 1200px; margin: 0 auto; padding: 0;">
 <h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;">Typography</h1>
+<p style="margin: 1rem 15rem 1rem 0; color: #757575; font-size: 16px; font-style: normal; font-weight: 400; line-height: 140%;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.</p>
 <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px 64px; margin-top: 3rem;">
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Primary typeface</h2>
+<h2 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px; color: #000;">Primary typeface</h2>
 </div>
 <div style="max-width: 800px;">
 <img src="/images/type-1.png" alt="Primary typeface section" style="width: 100%; margin-bottom: 1.5rem;" />
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Typeface weight</h2>
+<h2 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px; color: #000;">Typeface weight</h2>
 </div>
 <div style="max-width: 800px;">
 <img src="/images/type-2.png" alt="Typeface weight section" style="width: 100%; margin-bottom: 1.5rem;" />
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Line weight</h2>
+<h2 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px; color: #000;">Line weight</h2>
 </div>
 <div style="max-width: 800px;">
 <img src="/images/type-3.png" alt="Line weight section" style="width: 100%; margin-bottom: 1.5rem;" />
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Kerning and tracking</h2>
+<h2 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px; color: #000;">Kerning and tracking</h2>
 </div>
 <div style="max-width: 800px;">
 <img src="/images/type-4.png" alt="Kerning and tracking section" style="width: 100%; margin-bottom: 1.5rem;" />
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Gravity</h2>
+<h2 style="margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px; color: #000;">Gravity</h2>
 </div>
 <div style="max-width: 800px;">
 <img src="/images/type-5.png" alt="Gravity section" style="width: 100%; margin-bottom: 1.5rem;" />

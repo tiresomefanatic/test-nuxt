@@ -1,9 +1,9 @@
 <div style="max-width: 1200px; margin: 0 auto; padding: 0;">
 <h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;">Color</h1>
-<p style="margin: 1rem 0; line-height: 1.6;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.</p>
+<p style="margin: 1rem 15rem 1rem 0; color: #757575; font-size: 16px; font-style: normal; font-weight: 400; line-height: 140%;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.</p>
 <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px 64px; margin-top: 3rem;">
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Primary color</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Primary color</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="display: flex; margin-bottom: 1.5rem;">
@@ -13,7 +13,7 @@
 </div>
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Secondary color</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Secondary color</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="display: flex; margin-bottom: 1.5rem;">
@@ -22,7 +22,7 @@
 </div>
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Tertiary color</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Tertiary color</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-bottom: 1.5rem;">
@@ -35,7 +35,7 @@
 </div>
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Primary color shades</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Primary color shades</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="margin-bottom: 1.5rem;">
@@ -44,7 +44,7 @@
 </div>
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Secondary color shades</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Secondary color shades</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="margin-bottom: 1.5rem;">
@@ -53,7 +53,7 @@
 </div>
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Tertiary color shades</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Tertiary color shades</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="margin-bottom: 1.5rem;">
@@ -66,7 +66,7 @@
 </div>
 </div>
 <div>
-<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;">Color accessibility chart</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Color accessibility chart</h2>
 </div>
 <div style="max-width: 800px;">
 <p style="margin-bottom: 1rem;">This chart aims to help enhance the readability and visibility of text by our branding elements by ensuring sufficient contrast between text (foreground) and background colors. This adherence is crucial for accessibility and to comply with the Web Content Accessibility Guidelines (WCAG).</p>

@@ -72,6 +72,7 @@
   </div>
 
 </div>
+<hr style="background: #EBEBEB; border: 0; height: 1px;">
 <div style="margin: 64px 0 0;">
   <h2 style="font-size: 1.5rem; font-weight: 600; margin: 0 0 24px;">How did ECHO come <br/> about?</h2>
   
@@ -87,7 +88,6 @@
     <p style="color: #757575; font-size: 16px; font-style: normal; font-weight: 375; line-height: 140%; margin: 0; flex: 1;">Lorem ipsum dolor sit amet consectetur. Et et ultrices dolor ut vitae pharetra nullam dolor vestibulum pharetra et. Pretium consequat venenatis augue quam non leo rest fermentum nunc mi. Lacteeti id proin diam adipisicing laboris erat sed. Vestibulum risus sit elementum tortor.</p>
   </div>
   <div>
-
 
    </div>
     </div>

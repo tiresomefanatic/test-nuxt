@@ -2,7 +2,7 @@
 <template>
   <div class="page-wrapper">
     <ClientOnly>
-      <div v-if="data">
+      <div v-if="!loading">
         <Header />
         <div class="content-area" :class="{ 'editing-mode': isEditing }">
           <!-- Sidebar shown only in non-editing mode -->
@@ -32,50 +32,54 @@
 
             <!-- Main content area -->
             <ClientOnly>
-              <div v-if="isEditing" class="editor-container">
-                <TiptapEditor
-                  :content="editorContent"
-                  :filePath="contentPath"
-                  @update:content="handleContentChange"
-                  @save="handleSave"
-                  @error="handleEditorError"
-                />
-              </div>
-              <div v-else class="prose-content">
-                <div :key="contentKey">
-                  <ContentDoc :path="path" :head="false">
-                    <template #empty>
-                      <p>No content found.</p>
+              <template v-if="isEditing">
+                <div class="editor-container">
+                  <Suspense>
+                    <template #default>
+                      <TiptapEditor
+                        v-if="showEditor"
+                        :content="editorContent"
+                        :filePath="contentPath"
+                        @update:content="handleContentChange"
+                        @save="handleSave"
+                        @error="handleEditorError"
+                      />
                     </template>
-                    <template #not-found>
-                      <p>Content not found. Path: {{ path }}</p>
+                    <template #fallback>
+                      <div class="loading-state">Loading editor...</div>
                     </template>
-                  </ContentDoc>
+                  </Suspense>
                 </div>
-              </div>
+              </template>
+              <div v-else class="prose-content" v-html="content"></div>
             </ClientOnly>
           </div>
         </div>
       </div>
+      <div v-else class="loading-state">Loading...</div>
     </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import {
+  ref,
+  computed,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  nextTick,
+} from "vue";
 import { useRoute } from "vue-router";
-import { queryContent } from "#imports";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
-import { useAsyncData } from "#app";
+import { useContent } from "~/composables/useContent";
 import TiptapEditor from "~/components/TiptapEditor.vue";
 import DesignSidebar from "~/components/DesignSidebar.vue";
 import Header from "~/components/Header.vue";
-import { useRuntimeConfig, useNuxtApp } from "#app";
 
 // Initialize GitHub functionality and services
-const { getRawContent, saveFileContent, isLoggedIn, currentBranch } =
-  useGithub();
+const { isLoggedIn, currentBranch } = useGithub();
 const { showToast } = useToast();
 
 // State management
@@ -83,6 +87,7 @@ const loading = ref(false);
 const isEditing = ref(false);
 const editorContent = ref("");
 const contentLastModified = ref<string | null>(null);
+const showEditor = ref(false);
 
 // Route handling setup
 const route = useRoute();
@@ -91,30 +96,21 @@ const path = Array.isArray(slug) ? slug.join("/") : slug;
 
 // Compute whether to show sidebar based on path
 const showSidebar = computed(() => path !== "");
-const contentKey = computed(() => `${path}-${Date.now()}`);
-
-// Content queries for initial page load
-const { data } = await useAsyncData(
-  `content-${path}`,
-  () => {
-    if (!path) {
-      return queryContent().where({ _path: "/" }).findOne();
-    }
-    return queryContent()
-      .where({ _path: `/${path}` })
-      .findOne();
-  },
-  {
-    immediate: true,
-    server: true,
-  }
-);
 
 // Compute the content file path
 const contentPath = computed(() => {
   if (!path) return "content/index.md";
   return `content/${path}.md`;
 });
+
+// Initialize content system
+const {
+  content,
+  loading: contentLoading,
+  error,
+  fetchContent,
+  saveContent,
+} = useContent(contentPath.value);
 
 /**
  * Check if content needs to be refreshed by checking latest commit
@@ -147,76 +143,15 @@ const checkContentFreshness = async () => {
 };
 
 /**
- * Loads fresh content from GitHub.
- * This function ensures we always get the latest content by forcing a new fetch
- * and refreshing the local content state.
+ * Loads fresh content.
  */
 const loadContent = async (force = false) => {
   loading.value = true;
   try {
-    const needsRefresh = force || (await checkContentFreshness());
-
-    if (needsRefresh) {
-      console.log(`Fetching fresh content at ${new Date().toISOString()}`);
-      console.log(`Branch: ${currentBranch.value}, Path: ${contentPath.value}`);
-
-      // Get raw content from GitHub
-      const content = await getRawContent(
-        "tiresomefanatic",
-        "test-nuxt",
-        contentPath.value,
-        currentBranch.value
-      );
-
-      console.log("Raw content fetched:", {
-        length: content?.length || 0,
-        preview: content?.substring(0, 500),
-      });
-
-      // Update editor content
-      editorContent.value = content;
-
-      if (process.client) {
-        // Access Nuxt's content storage directly
-        const nuxtApp = useNuxtApp();
-        const storage = nuxtApp.$content?.storage;
-
-        console.log("Current content storage:", storage);
-
-        // Force Nuxt to clear its content cache
-        if (storage) {
-          await storage.clearAll();
-          console.log("Cleared content storage");
-        }
-
-        // Reload the page content
-        const query = !path
-          ? queryContent().where({ _path: "/" })
-          : queryContent().where({ _path: `/${path}` });
-
-        const newData = await query.findOne();
-        console.log("New content fetched:", newData);
-
-        // Update the data reference
-        data.value = newData;
-
-        // Add debug log for final data state
-        console.log("Final data state:", {
-          dataValue: data.value,
-          path: path,
-          contentPath: contentPath.value,
-        });
-      }
-
-      console.log("Content loaded and refreshed successfully");
-    }
+    const newContent = await fetchContent(force);
+    editorContent.value = newContent;
   } catch (error) {
     console.error("Content loading error:", error);
-    console.error("Full error details:", {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    });
     showToast({
       title: "Error",
       message: `Failed to load content from branch: ${currentBranch.value}`,
@@ -251,6 +186,9 @@ const handleEditClick = async () => {
 
   isEditing.value = true;
   await loadContent(true);
+  // Show editor after content is loaded
+  await nextTick();
+  showEditor.value = true;
 };
 
 const handleContentChange = (newContent: string) => {
@@ -260,8 +198,8 @@ const handleContentChange = (newContent: string) => {
 /**
  * Handles saving content to GitHub.
  */
-const handleSave = async (content: string) => {
-  if (!content || !isLoggedIn.value) {
+const handleSave = async (newContent: string) => {
+  if (!newContent || !isLoggedIn.value) {
     showToast({
       title: "Error",
       message: "Please sign in to save changes",
@@ -272,27 +210,19 @@ const handleSave = async (content: string) => {
 
   try {
     console.log(`Saving content to branch: ${currentBranch.value}`);
-    const result = await saveFileContent(
-      "tiresomefanatic",
-      "test-nuxt",
-      contentPath.value,
-      content,
-      `Update ${contentPath.value}`,
-      currentBranch.value
-    );
+    await saveContent(newContent);
 
-    if (result) {
-      showToast({
-        title: "Success",
-        message: `Content saved successfully to branch: ${currentBranch.value}`,
-        type: "success",
-      });
+    showToast({
+      title: "Success",
+      message: `Content saved successfully to branch: ${currentBranch.value}`,
+      type: "success",
+    });
 
-      await loadContent(true);
-      isEditing.value = false;
-    } else {
-      throw new Error(`Failed to save to branch: ${currentBranch.value}`);
-    }
+    isEditing.value = false;
+    showEditor.value = false;
+
+    // No need to force reload content since the store has the latest version
+    editorContent.value = newContent;
   } catch (error) {
     console.error(`Error saving content:`, error);
     showToast({
@@ -312,6 +242,7 @@ const handleEditorError = (error: Error) => {
 };
 
 const exitEditor = async () => {
+  showEditor.value = false;
   await loadContent(true);
   isEditing.value = false;
 };
@@ -320,6 +251,8 @@ const exitEditor = async () => {
 watch(isEditing, async (newValue, oldValue) => {
   if (newValue && !oldValue) {
     await loadContent(true);
+  } else if (!newValue && oldValue) {
+    showEditor.value = false;
   }
 });
 
@@ -329,32 +262,25 @@ watch(currentBranch, async (newBranch, oldBranch) => {
     console.log(
       `Branch changed from ${oldBranch} to ${newBranch}, reloading content...`
     );
-    await loadContent(true);
-  }
-});
-
-// Watch for path changes
-watch(contentPath, async (newPath, oldPath) => {
-  if (newPath !== oldPath) {
-    await loadContent(true);
+    await loadContent(true); // Force reload on branch change
   }
 });
 
 // Setup content refresh and event handlers only on client side
 onMounted(() => {
   if (process.client) {
-    // Initial content load
-    loadContent(true);
+    // Initial content load using cached content if available
+    loadContent(false);
 
     // Setup visibility change handler
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Setup polling only on client side
+    // Setup polling with longer interval (2 minutes)
     const contentRefreshInterval = setInterval(async () => {
       if (!isEditing.value) {
-        await loadContent();
+        await loadContent(false); // Use cache-aware loading
       }
-    }, 30000);
+    }, 160000); // 2 minutes
 
     // Cleanup function
     onBeforeUnmount(() => {
@@ -465,6 +391,7 @@ onMounted(() => {
 </style>
 
 <style scoped>
+/* Layout styles */
 .page-wrapper {
   min-height: 100vh;
   position: relative;
@@ -472,18 +399,16 @@ onMounted(() => {
 
 .content-area {
   display: flex;
-  background: white;
   min-height: calc(100vh - 64px);
 }
 
 .content-area.editing-mode {
-  padding: 32px;
+  padding: 0;
 }
 
 .sidebar {
   width: 240px;
   flex-shrink: 0;
-  background: white;
 }
 
 .main-content {
@@ -500,7 +425,6 @@ onMounted(() => {
   padding: 24px 32px;
   display: flex;
   justify-content: flex-end;
-  background: white;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -520,10 +444,18 @@ onMounted(() => {
 }
 
 .editor-container {
-  background: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   min-height: calc(100vh - 200px);
   margin: 0;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 16px;
+  color: #666;
 }
 </style>

@@ -1,7 +1,7 @@
 <div style="max-width: 1200px; margin: 0 auto; padding: 0;">
-<h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;"><strong>Col</strong>
+<h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;"><strong>Co</strong>
 </h1>
-<p style="margin: 1rem 15rem 1rem 0; color: #757575; font-size: 16px; font-style: normal; font-weight: 400; line-height: 140%;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.
+<p style="margin: 1rem 15rem 1rem 0; color: #757575; font-size: 16px; font-style: normal; font-weight: 400; line-height: 140%;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis laasdasm.
 </p>
 <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px 64px; margin-top: 3rem;">
 <div>
@@ -166,7 +166,7 @@ Any combination not meeting the above criteria
 <p style="margin-bottom: 2rem;">Regularly audit existing digital and printed materials for compliance with these guidelines. By following these guidelines, we ensure our brand materials are accessible, enhancing the experience for all users, including those with visual impairments.
 </p>
 <p>
-<img src="/images/color-accessibility-chart.png" alt="Color Accessibility Chart" style="width: 959px; height: 738px; margin-bottom: 1.5rem;">
+<img src="/images/color-accessibility-chart.png" alt="Color Accessibility Chart" style="width: 959px; height: 738px; margin-bottom: 1.5rem;">d
 </p>
 </div>
 </div>

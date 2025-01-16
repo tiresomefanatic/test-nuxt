@@ -1,6 +1,6 @@
 <div style="display: flex; gap: 2rem;">
 <div style="flex: 1; max-width: 800px;">
-<h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;"><strong>Log</strong>
+<h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;"><strong>LogOtesting</strong>
 </h1>
 <p style="margin: 1rem 0; line-height: 1.6;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.
 </p>

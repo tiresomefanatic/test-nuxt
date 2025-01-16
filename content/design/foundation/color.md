@@ -1,102 +1,173 @@
 <div style="max-width: 1200px; margin: 0 auto; padding: 0;">
-<h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;">Color</h1>
-<p style="margin: 1rem 15rem 1rem 0; color: #757575; font-size: 16px; font-style: normal; font-weight: 400; line-height: 140%;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.</p>
+<h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem;"><strong>Col</strong>
+</h1>
+<p style="margin: 1rem 15rem 1rem 0; color: #757575; font-size: 16px; font-style: normal; font-weight: 400; line-height: 140%;">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.
+</p>
 <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px 64px; margin-top: 3rem;">
 <div>
-<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Primary color</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;"><strong>Primary color</strong>
+</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="display: flex; margin-bottom: 1.5rem;">
-<div style="flex: 1; height: 100px; background: #FFFFFF;"></div>
-<div style="flex: 1; height: 100px; background: #FF5F37;"></div>
-<div style="flex: 1; height: 100px; background: #000000;"></div>
+<div style="flex: 1; height: 100px; background: #FFFFFF;">
+<p>
+</p>
+</div>
+<div style="flex: 1; height: 100px; background: #FF5F37;">
+<p>
+</p>
+</div>
+<div style="flex: 1; height: 100px; background: #000000;">
+<p>
+</p>
+</div>
 </div>
 </div>
 <div>
-<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Secondary color</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;"><strong>Secondary color</strong>
+</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="display: flex; margin-bottom: 1.5rem;">
-<div style="flex: 1; height: 100px; background: #4DD2FF;"></div>
-<div style="flex: 1; height: 100px; background: #FF3737;"></div>
+<div style="flex: 1; height: 100px; background: #4DD2FF;">
+<p>
+</p>
+</div>
+<div style="flex: 1; height: 100px; background: #FF3737;">
+<p>
+</p>
+</div>
 </div>
 </div>
 <div>
-<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Tertiary color</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;"><strong>Tertiary color</strong>
+</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-bottom: 1.5rem;">
-<div style="height: 100px; background: #FFB800;"></div>
-<div style="height: 100px; background: #37FF45;"></div>
-<div style="height: 100px; background: #3744FF;"></div>
-<div style="height: 100px; background: #FF3737;"></div>
-<div style="height: 100px; background: #BEFF37;"></div>
-<div style="height: 100px; background: #37FFE8;"></div>
+<div style="height: 100px; background: #FFB800;">
+<p>
+</p>
+</div>
+<div style="height: 100px; background: #37FF45;">
+<p>
+</p>
+</div>
+<div style="height: 100px; background: #3744FF;">
+<p>
+</p>
+</div>
+<div style="height: 100px; background: #FF3737;">
+<p>
+</p>
+</div>
+<div style="height: 100px; background: #BEFF37;">
+<p>
+</p>
+</div>
+<div style="height: 100px; background: #37FFE8;">
+<p>
+</p>
+</div>
 </div>
 </div>
 <div>
-<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Primary color shades</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;"><strong>Primary color shades</strong>
+</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="margin-bottom: 1.5rem;">
-<div style="height: 50px; background: linear-gradient(to right, #000000, #333333, #666666, #999999, #CCCCCC, #FFFFFF);"></div>
-<div style="height: 50px; background: linear-gradient(to right, #FF5F37, #FF7B5B, #FF977F, #FFB3A3, #FFCFC7, #FFEBEB);"></div>
+<div style="height: 50px; background: linear-gradient(to right, #000000, #333333, #666666, #999999, #CCCCCC, #FFFFFF);">
+<p>
+</p>
+</div>
+<div style="height: 50px; background: linear-gradient(to right, #FF5F37, #FF7B5B, #FF977F, #FFB3A3, #FFCFC7, #FFEBEB);">
+<p>
+</p>
+</div>
 </div>
 </div>
 <div>
-<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Secondary color shades</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;"><strong>Secondary color shades</strong>
+</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="margin-bottom: 1.5rem;">
-<div style="height: 50px; background: linear-gradient(to right, #4DD2FF, #70DBFF, #93E4FF, #B6EDFF, #D9F6FF, #FCFEFF);"></div>
-<div style="height: 50px; background: linear-gradient(to right, #FF3737, #FF5F5F, #FF8787, #FFAFAF, #FFD7D7, #FFFFFF);"></div>
+<div style="height: 50px; background: linear-gradient(to right, #4DD2FF, #70DBFF, #93E4FF, #B6EDFF, #D9F6FF, #FCFEFF);">
+<p>
+</p>
+</div>
+<div style="height: 50px; background: linear-gradient(to right, #FF3737, #FF5F5F, #FF8787, #FFAFAF, #FFD7D7, #FFFFFF);">
+<p>
+</p>
+</div>
 </div>
 </div>
 <div>
-<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Tertiary color shades</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;"><strong>Tertiary color shades</strong>
+</h2>
 </div>
 <div style="max-width: 800px;">
 <div style="margin-bottom: 1.5rem;">
-<div style="height: 50px; background: linear-gradient(to right, #3744FF, #5F6CFF, #8794FF, #AFBCFF, #D7E4FF, #FFFFFF);"></div>
-<div style="height: 50px; background: linear-gradient(to right, #37FFE8, #5FFFEE, #87FFF4, #AFFFF9, #D7FFFD, #FFFFFF);"></div>
-<div style="height: 50px; background: linear-gradient(to right, #FFB800, #FFC633, #FFD466, #FFE299, #FFF1CC, #FFFFFF);"></div>
-<div style="height: 50px; background: linear-gradient(to right, #FF3737, #FF5F5F, #FF8787, #FFAFAF, #FFD7D7, #FFFFFF);"></div>
-<div style="height: 50px; background: linear-gradient(to right, #37FF45, #5FFF6C, #87FF94, #AFFFBC, #D7FFE4, #FFFFFF);"></div>
-<div style="height: 50px; background: linear-gradient(to right, #BEFF37, #CBFF5F, #D8FF87, #E5FFAF, #F2FFD7, #FFFFFF);"></div>
+<div style="height: 50px; background: linear-gradient(to right, #3744FF, #5F6CFF, #8794FF, #AFBCFF, #D7E4FF, #FFFFFF);">
+<p>
+</p>
+</div>
+<div style="height: 50px; background: linear-gradient(to right, #37FFE8, #5FFFEE, #87FFF4, #AFFFF9, #D7FFFD, #FFFFFF);">
+<p>
+</p>
+</div>
+<div style="height: 50px; background: linear-gradient(to right, #FFB800, #FFC633, #FFD466, #FFE299, #FFF1CC, #FFFFFF);">
+<p>
+</p>
+</div>
+<div style="height: 50px; background: linear-gradient(to right, #FF3737, #FF5F5F, #FF8787, #FFAFAF, #FFD7D7, #FFFFFF);">
+<p>
+</p>
+</div>
+<div style="height: 50px; background: linear-gradient(to right, #37FF45, #5FFF6C, #87FF94, #AFFFBC, #D7FFE4, #FFFFFF);">
+<p>
+</p>
+</div>
+<div style="height: 50px; background: linear-gradient(to right, #BEFF37, #CBFF5F, #D8FF87, #E5FFAF, #F2FFD7, #FFFFFF);">
+<p>
+</p>
+</div>
 </div>
 </div>
 <div>
-<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;">Color accessibility chart</h2>
+<h2 style="color: #000; margin: 0; font-size: 24px; font-weight: 500; line-height: 120%; letter-spacing: -0.48px;"><strong>Color accessibility chart</strong>
+</h2>
 </div>
 <div style="max-width: 800px;">
-<p style="margin-bottom: 1rem;">This chart aims to help enhance the readability and visibility of text by our branding elements by ensuring sufficient contrast between text (foreground) and background colors. This adherence is crucial for accessibility and to comply with the Web Content Accessibility Guidelines (WCAG).</p>
-
-<h3 style="font-size: 1rem; font-weight: 600; margin: 1rem 0;">AAA (Enhanced):</h3>
-<ul style="list-style: none; padding: 0; margin: 0 0 1rem 0;">
-<li>Minimum contrast ratio of 7:1 for normal text</li>
-<li>Minimum contrast ratio of 4.5:1 for large text (18pt and larger, or 14pt and bold)</li>
-</ul>
-
-<h3 style="font-size: 1rem; font-weight: 600; margin: 1rem 0;">AA (Standard):</h3>
-<ul style="list-style: none; padding: 0; margin: 0 0 1rem 0;">
-<li>Minimum contrast ratio of 4.5:1 for normal text</li>
-<li>Minimum contrast ratio of 3:1 for large text (18pt and larger, or 14pt and bold)</li>
-</ul>
-
-<h3 style="font-size: 1rem; font-weight: 600; margin: 1rem 0;">AA18:</h3>
-<ul style="list-style: none; padding: 0; margin: 0 0 1rem 0;">
-<li>Applies to large text only</li>
-<li>Minimum contrast ratio of 3:1</li>
-</ul>
-
-<h3 style="font-size: 1rem; font-weight: 600; margin: 1rem 0;">FAIL:</h3>
-<ul style="list-style: none; padding: 0; margin: 0 0 1rem 0;">
-<li>Any combination not meeting the above criteria</li>
-</ul>
-
-<p style="margin-bottom: 2rem;">Regularly audit existing digital and printed materials for compliance with these guidelines. By following these guidelines, we ensure our brand materials are accessible, enhancing the experience for all users, including those with visual impairments.</p>
-
-<img src="/images/color-accessibility-chart.png" alt="Color Accessibility Chart" style="width: 959px; height: 738px; margin-bottom: 1.5rem;" />
+<p style="margin-bottom: 1rem;">This chart aims to help enhance the readability and visibility of text by our branding elements by ensuring sufficient contrast between text (foreground) and background colors. This adherence is crucial for accessibility and to comply with the Web Content Accessibility Guidelines (WCAG).
+</p>
+<h3 style="font-size: 1rem; font-weight: 600; margin: 1rem 0;"><strong>AAA (Enhanced):</strong>
+</h3>
+<p>
+Minimum contrast ratio of 7:1 for normal textMinimum contrast ratio of 4.5:1 for large text (18pt and larger, or 14pt and bold)
+</p>
+<h3 style="font-size: 1rem; font-weight: 600; margin: 1rem 0;"><strong>AA (Standard):</strong>
+</h3>
+<p>
+Minimum contrast ratio of 4.5:1 for normal textMinimum contrast ratio of 3:1 for large text (18pt and larger, or 14pt and bold)
+</p>
+<h3 style="font-size: 1rem; font-weight: 600; margin: 1rem 0;"><strong>AA18:</strong>
+</h3>
+<p>
+Applies to large text onlyMinimum contrast ratio of 3:1
+</p>
+<h3 style="font-size: 1rem; font-weight: 600; margin: 1rem 0;"><strong>FAIL:</strong>
+</h3>
+<p>
+Any combination not meeting the above criteria
+</p>
+<p style="margin-bottom: 2rem;">Regularly audit existing digital and printed materials for compliance with these guidelines. By following these guidelines, we ensure our brand materials are accessible, enhancing the experience for all users, including those with visual impairments.
+</p>
+<p>
+<img src="/images/color-accessibility-chart.png" alt="Color Accessibility Chart" style="width: 959px; height: 738px; margin-bottom: 1.5rem;">
+</p>
 </div>
 </div>
 </div>

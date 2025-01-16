@@ -9,6 +9,7 @@ import { Node } from "@tiptap/core";
 import Heading from "@tiptap/extension-heading";
 import Text from "@tiptap/extension-text";
 import Image from "@tiptap/extension-image";
+import { Markdown } from "tiptap-markdown";
 import ColorWheelExtension from "../extensions/colorWheelExtension";
 import CollaborationSidebar from "~/components/CollaborationSidebar.vue";
 import { useGithub } from "~/composables/useGithub";
@@ -376,6 +377,16 @@ onMounted(() => {
           class: "color-wheel-node",
         },
       }),
+      Markdown.configure({
+        html: true,
+        tightLists: true,
+        tightListClass: "tight",
+        bulletListMarker: "-",
+        linkify: true,
+        breaks: true,
+        transformPastedText: true,
+        transformCopiedText: true,
+      }),
     ],
     editorProps: {
       attributes: {
@@ -387,11 +398,9 @@ onMounted(() => {
       },
       handleDrop: false,
       handleClick: () => {
-        // Prevent default click behavior that might cause unwanted selection
         return true;
       },
       handleKeyDown: ({ event }) => {
-        // Allow default keyboard behavior but prevent unwanted selection
         if (event.key === "Tab") {
           return true;
         }
@@ -399,7 +408,7 @@ onMounted(() => {
       },
     },
     onUpdate: ({ editor: ed }) => {
-      const content = ed.getHTML();
+      const content = ed.storage.markdown.getMarkdown();
       if (content === localContent.value) return;
 
       // Capture cursor position
@@ -407,10 +416,9 @@ onMounted(() => {
 
       // Schedule content update
       setTimeout(() => {
-        const formattedContent = formatHTML(content);
-        localContent.value = formattedContent;
-        previewContent.value = formattedContent;
-        emit("update:content", formattedContent);
+        localContent.value = content;
+        previewContent.value = content;
+        emit("update:content", content);
 
         // Restore cursor position after state updates
         if (editor.value) {
@@ -424,20 +432,16 @@ onMounted(() => {
   });
 
   if (props.content) {
-    const parsedContent = parseMarkdownToHTML(props.content);
-    const formattedContent = formatHTML(parsedContent);
-    editor.value.commands.setContent(formattedContent, false, {
-      preserveWhitespace: "full",
-    });
-    localContent.value = formattedContent;
-    originalContent.value = formattedContent;
-    previewContent.value = formattedContent;
+    editor.value.commands.setContent(props.content, false);
+    const markdownContent = editor.value.storage.markdown.getMarkdown();
+    localContent.value = markdownContent;
+    originalContent.value = markdownContent;
+    previewContent.value = markdownContent;
   }
 
-  const initialContent = editor.value.getHTML();
+  const initialContent = editor.value.storage.markdown.getMarkdown();
   if (initialContent) {
-    const formattedContent = formatHTML(initialContent);
-    emit("update:content", formattedContent);
+    emit("update:content", initialContent);
   }
 
   editorInitialized.value = true;
@@ -447,8 +451,12 @@ onMounted(() => {
 const handleRawContentChange = (value: string) => {
   localContent.value = value;
   previewContent.value = value;
+  if (editor.value) {
+    editor.value.commands.setContent(value, false);
+  }
   emit("update:content", value);
 };
+
 // Watch raw mode changes
 watch(rawMode, (newValue) => {
   if (editor.value) {
@@ -469,12 +477,11 @@ watch(
     if (!editor.value || newContent === undefined) return;
 
     const { from, to } = editor.value.state.selection;
-    const parsedContent = parseMarkdownToHTML(newContent);
 
     // Only update if content actually changed
-    const currentContent = editor.value.getHTML();
-    if (currentContent !== parsedContent) {
-      editor.value.commands.setContent(parsedContent, false);
+    const currentContent = editor.value.storage.markdown.getMarkdown();
+    if (currentContent !== newContent) {
+      editor.value.commands.setContent(newContent, false);
 
       setTimeout(() => {
         if (editor.value) {
@@ -483,12 +490,10 @@ watch(
       }, 0);
     }
 
-    // Update local state without affecting original content
-    const formattedContent = formatHTML(parsedContent);
-    localContent.value = formattedContent;
-    previewContent.value = formattedContent;
-  },
-  { deep: true }
+    // Update local state
+    localContent.value = newContent;
+    previewContent.value = newContent;
+  }
 );
 
 watch(rawMode, (newValue) => {
@@ -723,6 +728,8 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
+# TiptapEditor.vue - Complete Updated Styles
+
 <style>
 .editor-wrapper {
   height: calc(100vh - 64px);
@@ -773,79 +780,68 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+/* Editor content styles */
 .markdown-editor {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
-  background: white;
 }
 
-.markdown-editor.has-changes {
-  background: #fafafa;
-}
-
-.preview-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2rem;
-  background: white;
-}
-
-.preview-content {
-  max-width: 720px;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-}
-
-.prose {
-  color: #000000;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.prose h1 {
+/* Keep prose styles for editor mode */
+.markdown-editor h1 {
   font-size: 2em;
   margin: 1.2em 0 0.6em;
   font-weight: 600;
   line-height: 1.2;
+  color: #000000;
 }
 
-.prose h2 {
+.markdown-editor h2 {
   font-size: 1.5em;
   margin: 1em 0 0.5em;
   font-weight: 600;
   line-height: 1.3;
-}
-
-.prose p {
-  margin: 1em 0;
-}
-
-.prose ul,
-.prose ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
-}
-
-.prose li {
-  margin: 0.5em 0;
-}
-
-.prose img {
-  max-width: 100%;
-  height: auto;
-  margin: 1.5em 0;
-}
-
-.prose-editor {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
   color: #000000;
 }
 
+.markdown-editor h3 {
+  font-size: 1.25em;
+  margin: 0.8em 0 0.4em;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #000000;
+}
+
+.markdown-editor p {
+  margin: 1em 0;
+  color: #000000;
+}
+
+.markdown-editor ul,
+.markdown-editor ol {
+  margin: 1em 0;
+  padding-left: 1.5em;
+  color: #000000;
+}
+
+.markdown-editor li {
+  margin: 0.5em 0;
+}
+
+/* Preview styles - remove all content styling */
+.preview-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.preview-wrapper .prose {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+/* Editor toolbar styles */
 .editor-toolbar {
   display: flex;
   justify-content: space-between;
@@ -948,48 +944,6 @@ onBeforeUnmount(() => {
 .monaco-editor {
   width: 100%;
   height: 100%;
-}
-
-.prose-editor h1 {
-  font-size: 2em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor h2 {
-  font-size: 1.5em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor h3 {
-  font-size: 1.25em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor p {
-  margin: 1em 0;
-}
-
-.prose-editor ul,
-.prose-editor ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
-}
-
-.prose-editor li {
-  margin: 0.5em 0;
-}
-
-.prose-editor img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 1.5em 0;
-  background: #f5f5f5;
-  padding: 2rem;
-  border-radius: 4px;
 }
 
 .color-wheel-node {

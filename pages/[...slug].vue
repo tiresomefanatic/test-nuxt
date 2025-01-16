@@ -33,13 +33,15 @@
             <!-- Main content area -->
             <ClientOnly>
               <div v-if="isEditing" class="editor-container">
-                <TiptapEditor
-                  :content="editorContent"
-                  :filePath="contentPath"
-                  @update:content="handleContentChange"
-                  @save="handleSave"
-                  @error="handleEditorError"
-                />
+                <ClientOnly>
+                  <MilkdownEditor
+                    :content="editorContent"
+                    :filePath="contentPath"
+                    @update:content="handleContentChange"
+                    @save="handleSave"
+                    @error="handleEditorError"
+                  />
+                </ClientOnly>
               </div>
               <div v-else class="prose-content">
                 <div :key="contentKey">
@@ -72,6 +74,7 @@ import TiptapEditor from "~/components/TiptapEditor.vue";
 import DesignSidebar from "~/components/DesignSidebar.vue";
 import Header from "~/components/Header.vue";
 import { useRuntimeConfig, useNuxtApp } from "#app";
+import MilkdownEditor from "~/components/MilkdownEditor.vue";
 
 // Initialize GitHub functionality and services
 const { getRawContent, saveFileContent, isLoggedIn, currentBranch } =
@@ -465,6 +468,7 @@ onMounted(() => {
 </style>
 
 <style scoped>
+/* Layout styles */
 .page-wrapper {
   min-height: 100vh;
   position: relative;
@@ -472,18 +476,16 @@ onMounted(() => {
 
 .content-area {
   display: flex;
-  background: white;
   min-height: calc(100vh - 64px);
 }
 
 .content-area.editing-mode {
-  padding: 32px;
+  padding: 0;
 }
 
 .sidebar {
   width: 240px;
   flex-shrink: 0;
-  background: white;
 }
 
 .main-content {
@@ -500,7 +502,6 @@ onMounted(() => {
   padding: 24px 32px;
   display: flex;
   justify-content: flex-end;
-  background: white;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -520,7 +521,6 @@ onMounted(() => {
 }
 
 .editor-container {
-  background: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   min-height: calc(100vh - 200px);

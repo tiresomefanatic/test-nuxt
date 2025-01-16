@@ -5,7 +5,7 @@
 </p>
 </div>
 <div style="width: 100%; max-width: 1512px; margin: 0 auto; padding: 0 clamp(16px, calc((100vw - 1512px) / 2 + 276px), 276px);">
-<h2 style="color: #000; font-size: 24px; font-style: normal; font-weight: 530; line-height: 120%; letter-spacing: -0.48px; margin: 0; text-align: start; padding: 42.5px 0px 32px;"><strong>Get started</strong>
+<h2 style="color: #000; font-size: 24px; font-style: normal; font-weight: 530; line-height: 120%; letter-spacing: -0.48px; margin: 0; text-align: start; padding: 42.5px 0px 32px;"><strong>Get started....</strong>
 </h2>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(309.33px, 1fr)); gap: 16px; margin: 0;">
 <div style="background: white; border-radius: 20px; border: 1px solid #D4D4D4; overflow: hidden; width: 100%;">
@@ -91,6 +91,45 @@
 <div style="margin: 64px 0 0;">
 <h2 style="font-size: 1.5rem; font-weight: 600; margin: 0 0 24px;"><strong>How did ECHO come <br>about?</strong>
 </h2>
+<div style="display: flex; gap: 2rem; margin: 3rem 0;">
+<p>
+</p>
+<div style="flex: 1;">
+<p>
+</p>
+<h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4;"><strong>Section Titleasss</strong>
+</h2>
+<p>
+</p>
+</div>
+<p>
+</p>
+<div style="flex: 2;">
+<p>
+</p>
+<div style="background: #f5f5f5; padding: 2rem; border-radius: 4px;">
+<p>
+<img src="/api/placeholder/800/400" alt="Section Image" style="width: 100%; height: auto; display: block;">
+</p>
+</div>
+<p>
+</p>
+<h3 style="font-size: 1.25rem; font-weight: 600; margin: 1rem 0;"><strong>Add Subtitle</strong>
+</h3>
+<p>
+</p>
+<p style="margin: 1rem 0; line-height: 1.6;">Add your description here.
+</p>
+<p>
+</p>
+<p style="margin: 1rem 0; line-height: 1.6;">Add additional details here.
+</p>
+<p>
+</p>
+</div>
+<p>
+</p>
+</div>
 <div style="width: 100%; max-width: 959px; height: 480px; background: #5377D3; border-radius: max(10px, 5%); margin: clamp(32px, 5vw, 64px) 0; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: min(24px, 3vw);">
 <h2 style="color: white; font-size: 32px; line-height: 1.4; margin: 0; font-weight: 700; text-align: center;"><strong>Echoing from the past.<br>Echoing into the future.</strong>
 </h2>

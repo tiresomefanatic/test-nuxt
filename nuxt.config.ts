@@ -5,7 +5,12 @@ export default defineNuxtConfig({
     "@nuxt/content", // Handles markdown content
     "@nuxt/ui", // Provides UI components
     "nuxt-monaco-editor", // Code editor
+    "@pinia/nuxt",
   ],
+
+  pinia: {
+    autoImports: ["defineStore", "storeToRefs"],
+  },
 
   // Components configuration
   components: {

@@ -5,7 +5,7 @@
 </p>
 </div>
 <div style="width: 100%; max-width: 1512px; margin: 0 auto; padding: 0 clamp(16px, calc((100vw - 1512px) / 2 + 276px), 276px);">
-<h2 style="color: #000; font-size: 24px; font-style: normal; font-weight: 530; line-height: 120%; letter-spacing: -0.48px; margin: 0; text-align: start; padding: 42.5px 0px 32px;"><strong>Get started.........</strong>
+<h2 style="color: #000; font-size: 24px; font-style: normal; font-weight: 530; line-height: 120%; letter-spacing: -0.48px; margin: 0; text-align: start; padding: 42.5px 0px 32px;"><strong>Get started.........]]]]</strong>
 </h2>
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(309.33px, 1fr)); gap: 16px; margin: 0;">
 <div style="background: white; border-radius: 20px; border: 1px solid #D4D4D4; overflow: hidden; width: 100%;">

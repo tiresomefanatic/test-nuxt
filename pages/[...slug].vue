@@ -33,15 +33,13 @@
             <!-- Main content area -->
             <ClientOnly>
               <div v-if="isEditing" class="editor-container">
-                <ClientOnly>
-                  <MilkdownEditor
-                    :content="editorContent"
-                    :filePath="contentPath"
-                    @update:content="handleContentChange"
-                    @save="handleSave"
-                    @error="handleEditorError"
-                  />
-                </ClientOnly>
+                <TiptapEditor
+                  :content="editorContent"
+                  :filePath="contentPath"
+                  @update:content="handleContentChange"
+                  @save="handleSave"
+                  @error="handleEditorError"
+                />
               </div>
               <div v-else class="prose-content">
                 <div :key="contentKey">
@@ -74,7 +72,6 @@ import TiptapEditor from "~/components/TiptapEditor.vue";
 import DesignSidebar from "~/components/DesignSidebar.vue";
 import Header from "~/components/Header.vue";
 import { useRuntimeConfig, useNuxtApp } from "#app";
-import MilkdownEditor from "~/components/MilkdownEditor.vue";
 
 // Initialize GitHub functionality and services
 const { getRawContent, saveFileContent, isLoggedIn, currentBranch } =
@@ -120,7 +117,7 @@ const contentPath = computed(() => {
 });
 
 /**
- * Check if content needs to be refreshed by checking latest commit
+ * Check if content needs to be refreshed by checking latest
  */
 const checkContentFreshness = async () => {
   try {

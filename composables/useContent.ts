@@ -7,6 +7,7 @@ interface ContentEntry {
   path: string;
   lastModified: number;
   sha: string;
+  branch: string; // Added branch to track content per branch
 }
 
 export const useHtmlContentStore = defineStore("html-content", () => {
@@ -35,27 +36,53 @@ export const useHtmlContentStore = defineStore("html-content", () => {
     );
   }
 
-  const setContent = (path: string, content: string, sha: string) => {
-    contentCache.value.set(path, {
+  // Generate unique key for content based on path and branch
+  const getContentKey = (path: string, branch: string) => `${branch}:${path}`;
+
+  const setContent = (
+    path: string,
+    content: string,
+    sha: string,
+    branch: string
+  ) => {
+    const key = getContentKey(path, branch);
+    contentCache.value.set(key, {
       content,
       path,
       lastModified: Date.now(),
       sha,
+      branch,
     });
   };
 
-  const getContent = (path: string): ContentEntry | undefined => {
-    return contentCache.value.get(path);
+  const getContent = (
+    path: string,
+    branch: string
+  ): ContentEntry | undefined => {
+    const key = getContentKey(path, branch);
+    return contentCache.value.get(key);
   };
 
-  const getContentBySha = (sha: string): ContentEntry | undefined => {
+  const getContentBySha = (
+    sha: string,
+    branch: string
+  ): ContentEntry | undefined => {
     return Array.from(contentCache.value.values()).find(
-      (entry) => entry.sha === sha
+      (entry) => entry.sha === sha && entry.branch === branch
     );
   };
 
-  const clearContent = (path: string) => {
-    contentCache.value.delete(path);
+  const clearContent = (path: string, branch: string) => {
+    const key = getContentKey(path, branch);
+    contentCache.value.delete(key);
+  };
+
+  const clearBranchContent = (branch: string) => {
+    for (const [key, entry] of contentCache.value.entries()) {
+      if (entry.branch === branch) {
+        contentCache.value.delete(key);
+      }
+    }
   };
 
   const clearAllContent = () => {
@@ -70,11 +97,11 @@ export const useHtmlContentStore = defineStore("html-content", () => {
     getContent,
     getContentBySha,
     clearContent,
+    clearBranchContent,
     clearAllContent,
   };
 });
 
-// composables/useContent.ts
 export const useContent = (path: string) => {
   const htmlStore = useHtmlContentStore();
   const { getRawContent, saveFileContent, currentBranch } = useGithub();
@@ -83,13 +110,13 @@ export const useContent = (path: string) => {
   const currentSha = ref<string | null>(null);
 
   const content = computed(() => {
-    const cached = htmlStore.getContent(path);
+    const cached = htmlStore.getContent(path, currentBranch.value);
     return cached?.content || "";
   });
 
   const checkGitHubContent = async () => {
     try {
-      // Get the latest commit SHA for the file
+      // Get the latest commit SHA for the file in current branch
       const response = await fetch(
         `https://api.github.com/repos/tiresomefanatic/test-nuxt/commits?path=${path}&sha=${currentBranch.value}`,
         { headers: { Accept: "application/vnd.github.v3+json" } }
@@ -102,17 +129,32 @@ export const useContent = (path: string) => {
       const commits = await response.json();
       const latestSha = commits[0]?.sha;
 
-      // If we have no SHA or a different SHA, we need to fetch new content
-      if (!currentSha.value || currentSha.value !== latestSha) {
-        // Check if we already have content with this SHA in cache
-        const cachedContent = htmlStore.getContentBySha(latestSha);
+      // Check if we need to fetch new content
+      const needsFetch = !currentSha.value || currentSha.value !== latestSha;
+
+      if (needsFetch) {
+        // Check if we have content with this SHA in cache for current branch
+        const cachedContent = htmlStore.getContentBySha(
+          latestSha,
+          currentBranch.value
+        );
         if (cachedContent) {
-          console.log("Found cached content for SHA:", latestSha);
+          console.log(
+            "Found cached content for SHA:",
+            latestSha,
+            "in branch:",
+            currentBranch.value
+          );
           return cachedContent.content;
         }
 
-        // Fetch new content only if we don't have it cached
-        console.log("Fetching new content for SHA:", latestSha);
+        // Fetch new content if not in cache
+        console.log(
+          "Fetching new content for SHA:",
+          latestSha,
+          "in branch:",
+          currentBranch.value
+        );
         const newContent = await getRawContent(
           "tiresomefanatic",
           "test-nuxt",
@@ -120,17 +162,17 @@ export const useContent = (path: string) => {
           currentBranch.value
         );
 
-        // Store new content with SHA
-        htmlStore.setContent(path, newContent, latestSha);
+        // Store new content with SHA and branch
+        htmlStore.setContent(path, newContent, latestSha, currentBranch.value);
         currentSha.value = latestSha;
         return newContent;
       }
 
-      // If SHA matches, use cached content
+      // If SHA matches and we're on same branch, use cached content
       return content.value;
     } catch (error) {
       console.error("Error checking GitHub content:", error);
-      return content.value;
+      return content.value; // Use cached content on error
     }
   };
 
@@ -144,14 +186,14 @@ export const useContent = (path: string) => {
         return newContent;
       }
 
-      // If we have cached content, use it
+      // Check if we have cached content for current branch
       if (content.value) {
         // Check GitHub in background
         checkGitHubContent();
         return content.value;
       }
 
-      // If no cached content, fetch from GitHub
+      // If no cached content for current branch, fetch from GitHub
       return await checkGitHubContent();
     } catch (e) {
       error.value = e as Error;
@@ -176,9 +218,14 @@ export const useContent = (path: string) => {
         currentBranch.value
       );
 
-      // Update local cache with new content and SHA
+      // Update local cache with new content and SHA for current branch
       if (result && result.commit && result.commit.sha) {
-        htmlStore.setContent(path, newContent, result.commit.sha);
+        htmlStore.setContent(
+          path,
+          newContent,
+          result.commit.sha,
+          currentBranch.value
+        );
         currentSha.value = result.commit.sha;
       }
     } catch (e) {

@@ -713,7 +713,7 @@ onBeforeUnmount(() => {
 
           <!-- Preview View -->
           <div v-else class="preview-wrapper">
-            <div class="prose" v-html="previewContent"></div>
+            <div v-html="previewContent"></div>
           </div>
         </div>
       </div>
@@ -773,79 +773,68 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+/* Editor content styles */
 .markdown-editor {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
-  background: white;
 }
 
-.markdown-editor.has-changes {
-  background: #fafafa;
-}
-
-.preview-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2rem;
-  background: white;
-}
-
-.preview-content {
-  max-width: 720px;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-}
-
-.prose {
-  color: #000000;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.prose h1 {
+/* Keep prose styles for editor mode */
+.markdown-editor h1 {
   font-size: 2em;
   margin: 1.2em 0 0.6em;
   font-weight: 600;
   line-height: 1.2;
+  color: #000000;
 }
 
-.prose h2 {
+.markdown-editor h2 {
   font-size: 1.5em;
   margin: 1em 0 0.5em;
   font-weight: 600;
   line-height: 1.3;
-}
-
-.prose p {
-  margin: 1em 0;
-}
-
-.prose ul,
-.prose ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
-}
-
-.prose li {
-  margin: 0.5em 0;
-}
-
-.prose img {
-  max-width: 100%;
-  height: auto;
-  margin: 1.5em 0;
-}
-
-.prose-editor {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
   color: #000000;
 }
 
+.markdown-editor h3 {
+  font-size: 1.25em;
+  margin: 0.8em 0 0.4em;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #000000;
+}
+
+.markdown-editor p {
+  margin: 1em 0;
+  color: #000000;
+}
+
+.markdown-editor ul,
+.markdown-editor ol {
+  margin: 1em 0;
+  padding-left: 1.5em;
+  color: #000000;
+}
+
+.markdown-editor li {
+  margin: 0.5em 0;
+}
+
+/* Preview styles - remove all content styling */
+.preview-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.preview-wrapper .prose {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+/* Editor toolbar styles */
 .editor-toolbar {
   display: flex;
   justify-content: space-between;
@@ -948,48 +937,6 @@ onBeforeUnmount(() => {
 .monaco-editor {
   width: 100%;
   height: 100%;
-}
-
-.prose-editor h1 {
-  font-size: 2em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor h2 {
-  font-size: 1.5em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor h3 {
-  font-size: 1.25em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor p {
-  margin: 1em 0;
-}
-
-.prose-editor ul,
-.prose-editor ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
-}
-
-.prose-editor li {
-  margin: 0.5em 0;
-}
-
-.prose-editor img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 1.5em 0;
-  background: #f5f5f5;
-  padding: 2rem;
-  border-radius: 4px;
 }
 
 .color-wheel-node {

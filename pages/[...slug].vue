@@ -449,13 +449,4 @@ onMounted(() => {
   min-height: calc(100vh - 200px);
   margin: 0;
 }
-
-.loading-state {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 200px;
-  font-size: 16px;
-  color: #666;
-}
 </style>

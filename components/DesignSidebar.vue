@@ -367,7 +367,7 @@ function closeMobileMenu() {
   .mobile-menu-btn {
     display: flex;
     position: fixed;
-    top: 80px;
+    top: 32px;
     left: 1rem;
     width: 48px;
     height: 48px;

@@ -6,34 +6,34 @@
   <div style="width: 100%; max-width: 1512px; margin: 0 auto; padding: 0 clamp(16px, calc((100vw - 1512px) / 2 + 276px), 276px);">
     <h2 style="color: #000; font-size: 24px; font-style: normal; font-weight: 530; line-height: 120%; letter-spacing: -0.48px; margin: 0; text-align: start; padding: 42.5px 0px 32px;">Get started</h2>
 
-   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(309.33px, 1fr)); gap: 16px; margin: 0;">
-      <div style="background: white; border-radius: 20px; border: 1px solid #D4D4D4; overflow: hidden; width: 100%;">
-        <div style="background: #000; padding: 24px; height: 180px; display: flex; align-items: center;">
-          <img src="/images/intro-design.png" alt="Design concept" style="width: 100%; height: auto; max-height: 132px; object-fit: contain;" />
+   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin: 0;">
+      <div style="background: white; border-radius: 16px; border: 1px solid #D4D4D4; overflow: hidden; width: 100%; max-width: clamp(200px, 85vw, 280px); margin: 0 auto;">
+        <div style="background: #000; height: clamp(100px, 40vw, 150px); display: flex; align-items: center; position: relative;">
+          <img src="/images/intro-design.png" alt="Design concept" style="width: 100%; height: auto; object-fit:cover;" />
         </div>
-        <div style="padding: 24px;">
-          <h3 style="color: #1E1E1E; font-size: 16px; font-style: normal; font-weight: 700; line-height: 140%; margin: 0 0 8px;">Design</h3>
-          <p style="color: #757575; font-size: 14px; font-style: normal; font-weight: 400; line-height: 140%; margin: 0;">Lorem ipsum dolor sit amet consectetur, ut aliquet sit amet consectetur Lorem ipsum.</p>
-        </div>
-      </div>
-
-   <div style="background: white; border-radius: 20px; border: 1px solid #D4D4D4; overflow: hidden; width: 100%;">
-        <div style="background: #000; padding: 24px; height: 180px; display: flex; align-items: center;">
-          <img src="/images/intro-develop.png" alt="Develop concept" style="width: 100%; height: auto; max-height: 132px; object-fit: contain;" />
-        </div>
-        <div style="padding: 24px;">
-          <h3 style="color: #1E1E1E; font-size: 16px; font-style: normal; font-weight: 700; line-height: 140%; margin: 0 0 8px;">Develop</h3>
-          <p style="color: #757575; font-size: 14px; font-style: normal; font-weight: 400; line-height: 140%; margin: 0;">Lorem ipsum dolor sit amet consectetur, ut aliquet sit amet consectetur Lorem ipsum.</p>
+        <div style="padding: clamp(12px, 3vw, 20px); position: relative; background: white;">
+          <h3 style="color: #1E1E1E; font-size: clamp(12px, 3.5vw, 14px); font-style: normal; font-weight: 700; line-height: 140%; margin: 0 0 6px;">Design</h3>
+          <p style="color: #757575; font-size: clamp(10px, 3vw, 12px); font-style: normal; font-weight: 400; line-height: 140%; margin: 0;">Lorem ipsum dolor sit amet consectetur, ut aliquet sit amet consectetur Lorem ipsum.</p>
         </div>
       </div>
 
-   <div style="background: white; border-radius: 20px; border: 1px solid #D4D4D4; overflow: hidden; width: 100%;">
-        <div style="background: #000; padding: 24px; height: 180px; display: flex; align-items: center;">
-          <img src="/images/intro-contribute.png" alt="Contribute concept" style="width: 100%; height: auto; max-height: 132px; object-fit: contain;" />
+  <div style="background: white; border-radius: 16px; border: 1px solid #D4D4D4; overflow: hidden; width: 100%; max-width: clamp(200px, 85vw, 280px); margin: 0 auto;">
+        <div style="background: #000; height: clamp(100px, 40vw, 150px); display: flex; align-items: center; position: relative;">
+          <img src="/images/intro-develop.png" alt="Develop concept" style="width: 100%; height: auto; object-fit: cover;" />
         </div>
-        <div style="padding: 24px;">
-          <h3 style="color: #1E1E1E; font-size: 16px; font-style: normal; font-weight: 700; line-height: 140%; margin: 0 0 8px;">Contribute</h3>
-          <p style="color: #757575; font-size: 14px; font-style: normal; font-weight: 400; line-height: 140%; margin: 0;">Lorem ipsum dolor sit amet consectetur, ut aliquet sit amet consectetur Lorem ipsum.</p>
+        <div style="padding: clamp(12px, 3vw, 20px); position: relative; background: white;">
+          <h3 style="color: #1E1E1E; font-size: clamp(12px, 3.5vw, 14px); font-style: normal; font-weight: 700; line-height: 140%; margin: 0 0 6px;">Develop</h3>
+          <p style="color: #757575; font-size: clamp(10px, 3vw, 12px); font-style: normal; font-weight: 400; line-height: 140%; margin: 0;">Lorem ipsum dolor sit amet consectetur, ut aliquet sit amet consectetur Lorem ipsum.</p>
+        </div>
+      </div>
+
+  <div style="background: white; border-radius: 16px; border: 1px solid #D4D4D4; overflow: hidden; width: 100%; max-width: clamp(200px, 85vw, 280px); margin: 0 auto;">
+        <div style="background: #000; height: clamp(100px, 40vw, 150px); display: flex; align-items: center; position: relative;">
+          <img src="/images/intro-contribute.png" alt="Contribute concept" style="width: 100%; height: auto; object-fit: cover;" />
+        </div>
+        <div style="padding: clamp(12px, 3vw, 20px); position: relative; background: white;">
+          <h3 style="color: #1E1E1E; font-size: clamp(12px, 3.5vw, 14px); font-style: normal; font-weight: 700; line-height: 140%; margin: 0 0 6px;">Contribute</h3>
+          <p style="color: #757575; font-size: clamp(10px, 3vw, 12px); font-style: normal; font-weight: 400; line-height: 140%; margin: 0;">Lorem ipsum dolor sit amet consectetur, ut aliquet sit amet consectetur Lorem ipsum.</p>
         </div>
       </div>
     </div>
@@ -88,6 +88,7 @@
     <p style="color: #757575; font-size: 16px; font-style: normal; font-weight: 375; line-height: 140%; margin: 0; flex: 1;">Lorem ipsum dolor sit amet consectetur. Et et ultrices dolor ut vitae pharetra nullam dolor vestibulum pharetra et. Pretium consequat venenatis augue quam non leo rest fermentum nunc mi. Lacteeti id proin diam adipisicing laboris erat sed. Vestibulum risus sit elementum tortor.</p>
   </div>
   <div>
+
 
    </div>
     </div>

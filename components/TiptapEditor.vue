@@ -9,13 +9,16 @@ import { Node } from "@tiptap/core";
 import Heading from "@tiptap/extension-heading";
 import Text from "@tiptap/extension-text";
 import Image from "@tiptap/extension-image";
-import ColorWheelExtension from "../extensions/colorWheelExtension";
+import ColorWheelExtension from "~/extensions/colorWheelExtension";
 import CollaborationSidebar from "~/components/CollaborationSidebar.vue";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
 import { useNuxtApp } from "#app";
 import AddContentDialog from "./AddContentDialog.vue";
 import type { editor as MonacoEditor } from "monaco-editor";
+import { useEditorStore } from "~/stores/editor";
+import { TextSelection } from "@tiptap/pm/state";
+import type { EditorView } from "@tiptap/pm/view";
 
 interface Props {
   content?: string;
@@ -88,6 +91,30 @@ const handleInsertSection = (sectionId: string) => {
   }
 };
 
+const props = defineProps<Props>();
+const emit = defineEmits<{
+  (e: "update:content", value: string): void;
+  (e: "save", value: string): void;
+  (e: "error", error: Error): void;
+}>();
+
+// State management
+const localContent = ref("");
+const originalContent = ref("");
+const isSaving = ref(false);
+const previewMode = ref(false);
+const rawMode = ref(false);
+const editor = ref<Editor | null>(null);
+const editorInitialized = ref(false);
+const previewContent = ref("");
+const monacoEditor = ref<any>(null);
+
+// Initialize composables
+const { showToast } = useToast();
+const github = useGithub();
+const { isLoggedIn } = github;
+const editorStore = useEditorStore();
+
 // Node extensions with style support
 const StyledDiv = Node.create({
   name: "styledDiv",
@@ -109,14 +136,6 @@ const StyledDiv = Node.create({
         renderHTML: (attributes) => {
           if (!attributes.class) return {};
           return { class: attributes.class };
-        },
-      },
-      "data-type": {
-        default: null,
-        parseHTML: (element) => element.getAttribute("data-type"),
-        renderHTML: (attributes) => {
-          if (!attributes["data-type"]) return {};
-          return { "data-type": attributes["data-type"] };
         },
       },
     };
@@ -161,81 +180,24 @@ const GridContainer = Node.create({
   },
 });
 
-const StyledParagraph = Paragraph.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      style: {
-        default: null,
-        parseHTML: (element) => element.getAttribute("style"),
-        renderHTML: (attributes) => {
-          if (!attributes.style) return {};
-          return { style: attributes.style };
-        },
-      },
-    };
-  },
-});
+// Save functionality
+const saveToLocal = () => {
+  if (!hasChanges.value || isSaving.value) return;
+  editorStore.saveContent(props.filePath, localContent.value);
+  showToast({
+    title: "Success",
+    message: "Content saved locally",
+    type: "success",
+  });
+};
 
-const StyledHeading = Heading.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      style: {
-        default: null,
-        parseHTML: (element) => element.getAttribute("style"),
-        renderHTML: (attributes) => {
-          if (!attributes.style) return {};
-          return { style: attributes.style };
-        },
-      },
-    };
-  },
-});
-
-const StyledImage = Image.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      style: {
-        default: null,
-        parseHTML: (element) => element.getAttribute("style"),
-        renderHTML: (attributes) => {
-          if (!attributes.style) return {};
-          return { style: attributes.style };
-        },
-      },
-    };
-  },
-});
-
-const props = defineProps<Props>();
-const emit = defineEmits<{
-  (e: "update:content", value: string): void;
-  (e: "save", value: string): void;
-  (e: "error", error: Error): void;
-}>();
-
-// State management
-const localContent = ref("");
-const originalContent = ref("");
-const isSaving = ref(false);
-const previewMode = ref(false);
-const rawMode = ref(false);
-const editor = ref<Editor | null>(null);
-const editorInitialized = ref(false);
-const previewContent = ref("");
-const monacoEditor = ref<MonacoEditor.IStandaloneCodeEditor | null>(null);
-
-// Initialize composables
-const { showToast } = useToast();
-const github = useGithub();
-const { isLoggedIn } = github;
-
-// Debug mode detection
-const showDebugInfo = computed(() => {
-  return process.env.NODE_ENV === "development";
-});
+const loadSavedVersion = (content: string) => {
+  if (editor.value) {
+    editor.value.commands.setContent(content);
+    localContent.value = content;
+    previewContent.value = content;
+  }
+};
 
 /**
  * Helper function to normalize HTML content by handling HTML entities consistently
@@ -283,6 +245,17 @@ const formatHTML = (html: string): string => {
     .replace(/§§\/EM§§/g, "</em>");
 
   return formattedHTML.replace(/\n{3,}/g, "\n\n").trim();
+};
+
+const parseMarkdownToHTML = (content: string): string => {
+  if (!content) return "";
+
+  return content
+    .replace(/::color-wheel\s*::/g, '<div data-type="color-wheel"></div>')
+    .replace(
+      /::test-component\s*::/g,
+      '<div data-type="test-component"></div>'
+    );
 };
 
 const editorOptions = {
@@ -338,22 +311,52 @@ const editorOptions = {
   },
 };
 
-const CustomDocument = Document.extend({
-  content: "block+",
-});
-
-const parseMarkdownToHTML = (content: string): string => {
-  if (!content) return "";
-
-  return content
-    .replace(/::color-wheel\s*::/g, '<div data-type="color-wheel"></div>')
-    .replace(
-      /::test-component\s*::/g,
-      '<div data-type="test-component"></div>'
-    );
+const handleRawContentChange = (value: string) => {
+  if (!value) return;
+  localContent.value = value;
+  previewContent.value = value;
+  emit("update:content", value);
 };
 
+// Watch raw mode changes
+watch(rawMode, (newValue) => {
+  if (editor.value) {
+    if (!newValue) {
+      // When switching from raw mode back to normal mode
+      editor.value.commands.setContent(localContent.value, false);
+      previewContent.value = localContent.value;
+    } else {
+      // When switching to raw mode, ensure Monaco editor gets latest content
+      nextTick(() => {
+        if (monacoEditor.value) {
+          monacoEditor.value.setValue(localContent.value);
+        }
+      });
+    }
+  }
+});
+
+// Watch content prop changes
+watch(
+  () => props.content,
+  (newContent) => {
+    if (!editor.value || newContent === undefined) return;
+
+    const parsedContent = parseMarkdownToHTML(newContent);
+
+    // Only update if content actually changed
+    if (parsedContent !== localContent.value) {
+      editor.value.commands.setContent(parsedContent, false);
+      localContent.value = parsedContent;
+      previewContent.value = parsedContent;
+    }
+  },
+  { deep: true }
+);
+
 onMounted(() => {
+  editorStore.loadSaves();
+
   editor.value = new Editor({
     extensions: [
       StarterKit.configure({
@@ -363,11 +366,23 @@ onMounted(() => {
         bulletList: false,
         orderedList: false,
       }),
-      CustomDocument,
-      StyledParagraph,
-      StyledHeading,
-      StyledImage.configure({
+      Document,
+      Text,
+      Paragraph.configure({
+        HTMLAttributes: {
+          class: null,
+        },
+      }),
+      Heading.configure({
+        HTMLAttributes: {
+          class: null,
+        },
+      }),
+      Image.configure({
         inline: true,
+        HTMLAttributes: {
+          class: null,
+        },
       }),
       StyledDiv,
       GridContainer,
@@ -379,44 +394,171 @@ onMounted(() => {
     ],
     editorProps: {
       attributes: {
-        class: "prose-editor",
         spellcheck: "false",
       },
       transformPastedHTML: (html) => {
         return html;
       },
       handleDrop: false,
-      handleClick: () => {
-        // Prevent default click behavior that might cause unwanted selection
-        return true;
+      handleClick: (view: EditorView, pos: number, event: MouseEvent) => {
+        const coordsAtPos = view.coordsAtPos(pos);
+        const element = document.elementFromPoint(
+          coordsAtPos.left,
+          coordsAtPos.top
+        );
+
+        if (element?.closest('[style*="display: flex"]')) {
+          const flexContainer = element.closest('[style*="display: flex"]');
+          if (flexContainer) {
+            const rect = flexContainer.getBoundingClientRect();
+            const relativeY = event.clientY - rect.top;
+
+            const children = Array.from(flexContainer.children);
+            const targetChild = children.find((child) => {
+              const childRect = child.getBoundingClientRect();
+              return (
+                event.clientY >= childRect.top &&
+                event.clientY <= childRect.bottom
+              );
+            });
+
+            if (targetChild) {
+              const targetPos = view.posAtDOM(targetChild, 0);
+              view.dispatch(
+                view.state.tr.setSelection(
+                  TextSelection.create(view.state.doc, targetPos)
+                )
+              );
+              return true;
+            }
+          }
+        }
+        return false;
       },
-      handleKeyDown: ({ event }) => {
-        // Allow default keyboard behavior but prevent unwanted selection
+      handleKeyDown: (view: EditorView, event: KeyboardEvent) => {
+        if (event.key === "Enter") {
+          const { state } = view;
+          const { selection } = state;
+          const { $from } = selection;
+          const parent = $from.parent;
+
+          // Find the current flex container
+          let currentFlexDepth = $from.depth;
+          let flexContainer = null;
+
+          while (currentFlexDepth > 0) {
+            const node = $from.node(currentFlexDepth);
+            if (
+              node.type.name === "styledDiv" &&
+              node.attrs.style?.includes("display: flex")
+            ) {
+              flexContainer = node;
+              break;
+            }
+            currentFlexDepth--;
+          }
+
+          if (!flexContainer) {
+            return false;
+          }
+
+          // Check if we're in the left column (flex: 1)
+          const isInLeftColumn = parent.attrs.style?.includes("flex: 1");
+
+          // Check if we're at the end of the document
+          const isAtEnd = $from.pos === state.doc.content.size;
+
+          if (isAtEnd && event.shiftKey) {
+            // Create a new section at the end
+            view.dispatch(
+              state.tr.insert(
+                $from.pos,
+                state.schema.nodes.styledDiv.create(
+                  { style: "display: flex; gap: 2rem; margin: 3rem 0;" },
+                  [
+                    state.schema.nodes.styledDiv.create({ style: "flex: 1;" }, [
+                      state.schema.nodes.paragraph.create(),
+                    ]),
+                    state.schema.nodes.styledDiv.create({ style: "flex: 2;" }, [
+                      state.schema.nodes.paragraph.create(),
+                    ]),
+                  ]
+                )
+              )
+            );
+            return true;
+          } else if (isInLeftColumn) {
+            // If in left column and Shift+Enter is pressed, create a new line within the column
+            if (event.shiftKey) {
+              view.dispatch(
+                state.tr.insert(
+                  $from.pos,
+                  state.schema.nodes.hardBreak.create()
+                )
+              );
+              return true;
+            }
+            // Regular Enter in left column moves to right column
+            const rightColumn = flexContainer.lastChild;
+            if (rightColumn) {
+              const domNode = view.nodeDOM(rightColumn.pos) as Node;
+              if (domNode) {
+                const targetPos = view.posAtDOM(domNode, 0);
+                view.dispatch(
+                  state.tr.setSelection(
+                    TextSelection.create(state.doc, targetPos)
+                  )
+                );
+                return true;
+              }
+            }
+          } else {
+            // In right column, normal Enter behavior
+            return false;
+          }
+        }
+
         if (event.key === "Tab") {
           return true;
         }
+
         return false;
       },
     },
     onUpdate: ({ editor: ed }) => {
-      const content = ed.getHTML();
-      if (content === localContent.value) return;
+      const { selection } = ed.state;
+      const { $from } = selection;
+      const parent = $from.parent;
 
-      // Capture cursor position
-      const { from, to } = ed.state.selection;
+      if (
+        parent.type.name === "styledDiv" &&
+        parent.attrs.style?.includes("display: flex")
+      ) {
+        const currentNode = $from.node();
+        const parentPos = $from.before($from.depth);
 
-      // Schedule content update
-      setTimeout(() => {
-        const formattedContent = formatHTML(content);
-        localContent.value = formattedContent;
-        previewContent.value = formattedContent;
-        emit("update:content", formattedContent);
+        let targetPos = parentPos;
+        let targetDepth = $from.depth;
 
-        // Restore cursor position after state updates
-        if (editor.value) {
-          editor.value.commands.setTextSelection({ from, to });
+        while (targetDepth > 1) {
+          const node = $from.node(targetDepth);
+          if (node.attrs.style?.includes("display: flex")) {
+            targetPos = $from.before(targetDepth);
+            break;
+          }
+          targetDepth--;
         }
-      }, 0);
+
+        const content = ed.getHTML();
+        localContent.value = content;
+        previewContent.value = content;
+        emit("update:content", content);
+      } else {
+        const content = ed.getHTML();
+        localContent.value = content;
+        previewContent.value = content;
+        emit("update:content", content);
+      }
     },
     parseOptions: {
       preserveWhitespace: "full",
@@ -425,87 +567,46 @@ onMounted(() => {
 
   if (props.content) {
     const parsedContent = parseMarkdownToHTML(props.content);
-    const formattedContent = formatHTML(parsedContent);
-    editor.value.commands.setContent(formattedContent, false, {
-      preserveWhitespace: "full",
-    });
-    localContent.value = formattedContent;
-    originalContent.value = formattedContent;
-    previewContent.value = formattedContent;
-  }
-
-  const initialContent = editor.value.getHTML();
-  if (initialContent) {
-    const formattedContent = formatHTML(initialContent);
-    emit("update:content", formattedContent);
+    editor.value.commands.setContent(parsedContent, false);
+    localContent.value = parsedContent;
+    originalContent.value = parsedContent;
+    previewContent.value = parsedContent;
   }
 
   editorInitialized.value = true;
 });
 
+onMounted(() => {
+  const editorContent = document.querySelector(".editor-content");
+  if (editorContent) {
+    editorContent.addEventListener("scroll", () => {
+      editorContent.setAttribute(
+        "data-scroll-top",
+        editorContent.scrollTop.toString()
+      );
+    });
+  }
+});
+
+onBeforeUnmount(() => {
+  const editorContent = document.querySelector(".editor-content");
+  if (editorContent) {
+    editorContent.removeEventListener("scroll", () => {});
+  }
+});
+
 // Handle raw content changes
-const handleRawContentChange = (value: string) => {
-  localContent.value = value;
-  previewContent.value = value;
-  emit("update:content", value);
+const deleteSavedVersion = (timestamp: string) => {
+  editorStore.deleteSave(props.filePath, timestamp);
 };
+
 // Watch raw mode changes
 watch(rawMode, (newValue) => {
   if (editor.value) {
     if (!newValue) {
       // When switching from raw mode back to normal mode
-      editor.value.commands.setContent(localContent.value, false, {
-        preserveWhitespace: "full",
-      });
+      editor.value.commands.setContent(localContent.value, false);
       previewContent.value = localContent.value;
-    }
-  }
-});
-
-// Watch content prop changes
-watch(
-  () => props.content,
-  (newContent) => {
-    if (!editor.value || newContent === undefined) return;
-
-    const { from, to } = editor.value.state.selection;
-    const parsedContent = parseMarkdownToHTML(newContent);
-
-    // Only update if content actually changed
-    const currentContent = editor.value.getHTML();
-    if (currentContent !== parsedContent) {
-      editor.value.commands.setContent(parsedContent, false);
-
-      setTimeout(() => {
-        if (editor.value) {
-          editor.value.commands.setTextSelection({ from, to });
-        }
-      }, 0);
-    }
-
-    // Update local state without affecting original content
-    const formattedContent = formatHTML(parsedContent);
-    localContent.value = formattedContent;
-    previewContent.value = formattedContent;
-  },
-  { deep: true }
-);
-
-watch(rawMode, (newValue) => {
-  if (editor.value) {
-    if (!newValue) {
-      // When switching from raw mode back to normal mode
-      editor.value.commands.setContent(localContent.value, false, {
-        preserveWhitespace: "full",
-      });
-      previewContent.value = localContent.value;
-    } else {
-      // When switching to raw mode, ensure Monaco editor gets latest content
-      nextTick(() => {
-        if (monacoEditor.value) {
-          monacoEditor.value.setValue(localContent.value);
-        }
-      });
     }
   }
 });
@@ -547,6 +648,13 @@ const saveToDisk = async () => {
   }
 };
 
+const handleLoadSave = (content: string) => {
+  if (editor.value) {
+    editor.value.commands.setContent(content);
+    localContent.value = content;
+  }
+};
+
 onBeforeUnmount(() => {
   if (editor.value) {
     editor.value.destroy();
@@ -559,17 +667,6 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="editor-wrapper">
-    <!-- <div v-if="showDebugInfo" class="debug-info">
-      <div class="debug-panel">
-        <pre>Has changes: {{ hasChanges }}</pre>
-        <pre>Local content length: {{ localContent?.length }}</pre>
-        <pre>Original content length: {{ originalContent?.length }}</pre>
-        <pre>Preview mode: {{ previewMode }}</pre>
-        <pre>Raw mode: {{ rawMode }}</pre>
-        <pre>Editor initialized: {{ editorInitialized }}</pre>
-      </div>
-    </div> -->
-
     <div v-if="!isLoggedIn" class="login-prompt">
       <p class="login-message">Please sign in with GitHub to edit this file</p>
       <button @click="github.login" class="login-button">
@@ -600,6 +697,13 @@ onBeforeUnmount(() => {
               >
                 Commit Changes
               </button>
+              <button
+                v-if="hasChanges && !isSaving"
+                class="toolbar-button primary"
+                @click="saveToLocal"
+              >
+                Save Locally
+              </button>
             </template>
 
             <!-- Raw View -->
@@ -623,6 +727,13 @@ onBeforeUnmount(() => {
               >
                 Commit Changes
               </button>
+              <button
+                v-if="hasChanges && !isSaving"
+                class="toolbar-button primary"
+                @click="saveToLocal"
+              >
+                Save Locally
+              </button>
             </template>
 
             <!-- Preview View -->
@@ -636,6 +747,13 @@ onBeforeUnmount(() => {
                 @click="saveToDisk"
               >
                 Commit Changes
+              </button>
+              <button
+                v-if="hasChanges && !isSaving"
+                class="toolbar-button primary"
+                @click="saveToLocal"
+              >
+                Save Locally
               </button>
             </template>
 
@@ -695,7 +813,7 @@ onBeforeUnmount(() => {
             <editor-content
               v-if="editorInitialized"
               :editor="editor"
-              class="markdown-editor"
+              class="content-wrapper"
               :class="{ 'has-changes': hasChanges }"
             />
           </template>
@@ -713,12 +831,15 @@ onBeforeUnmount(() => {
 
           <!-- Preview View -->
           <div v-else class="preview-wrapper">
-            <div class="prose" v-html="previewContent"></div>
+            <div class="content-wrapper" v-html="previewContent"></div>
           </div>
         </div>
       </div>
 
-      <CollaborationSidebar />
+      <CollaborationSidebar 
+        :filePath="props.filePath" 
+        @load-save="handleLoadSave"
+      />
     </div>
   </div>
 </template>
@@ -729,25 +850,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   background: white;
-}
-
-.debug-info {
-  position: fixed;
-  top: 0;
-  right: 0;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 10px;
-  font-family: monospace;
-  font-size: 12px;
-  max-width: 400px;
-  overflow: auto;
-}
-
-.debug-panel pre {
-  margin: 5px 0;
-  white-space: pre-wrap;
 }
 
 .editor-layout {
@@ -770,82 +872,10 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   background: white;
-  overflow: hidden;
+  overflow: auto;
 }
 
-.markdown-editor {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2rem;
-  background: white;
-}
-
-.markdown-editor.has-changes {
-  background: #fafafa;
-}
-
-.preview-wrapper {
-  flex: 1;
-  overflow-y: auto;
-  padding: 2rem;
-  background: white;
-}
-
-.preview-content {
-  max-width: 720px;
-  margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-}
-
-.prose {
-  color: #000000;
-  font-size: 16px;
-  line-height: 1.6;
-}
-
-.prose h1 {
-  font-size: 2em;
-  margin: 1.2em 0 0.6em;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.prose h2 {
-  font-size: 1.5em;
-  margin: 1em 0 0.5em;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.prose p {
-  margin: 1em 0;
-}
-
-.prose ul,
-.prose ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
-}
-
-.prose li {
-  margin: 0.5em 0;
-}
-
-.prose img {
-  max-width: 100%;
-  height: auto;
-  margin: 1.5em 0;
-}
-
-.prose-editor {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  color: #000000;
-}
-
+/* Editor toolbar styles */
 .editor-toolbar {
   display: flex;
   justify-content: space-between;
@@ -856,6 +886,9 @@ onBeforeUnmount(() => {
 }
 
 .tiptap-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   padding: 0.5rem;
   display: flex;
   gap: 0.5rem;
@@ -950,52 +983,44 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.prose-editor h1 {
-  font-size: 2em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
+/* Only apply minimal styling to preserve inline styles */
+.ProseMirror {
+  flex: 1;
+  outline: none;
 }
 
-.prose-editor h2 {
-  font-size: 1.5em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor h3 {
-  font-size: 1.25em;
-  font-weight: 600;
-  margin: 1em 0 0.5em;
-}
-
-.prose-editor p {
-  margin: 1em 0;
-}
-
-.prose-editor ul,
-.prose-editor ol {
-  margin: 1em 0;
-  padding-left: 1.5em;
-}
-
-.prose-editor li {
-  margin: 0.5em 0;
-}
-
-.prose-editor img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 1.5em 0;
-  background: #f5f5f5;
-  padding: 2rem;
-  border-radius: 4px;
-}
-
+/* Color wheel component styles */
 .color-wheel-node {
   margin: 1rem 0;
   padding: 1rem;
   background: #f5f5f5;
   border-radius: 4px;
+}
+
+/* Add smooth shadow effect for sticky toolbar */
+.tiptap-toolbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 4px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.editor-content:not([data-scroll-top="0"]) .tiptap-toolbar::after {
+  opacity: 1;
+}
+
+.content-wrapper {
+  padding: 1rem;
+  min-height: 100%;
 }
 </style>

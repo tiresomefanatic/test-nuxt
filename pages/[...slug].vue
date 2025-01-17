@@ -5,7 +5,12 @@
       <div v-if="data">
         <Header />
         <div class="content-area" :class="{ 'editing-mode': isEditing }">
-          <!-- Sidebar shown only in non-editing mode -->
+          <!-- Mobile menu wrapper -->
+          <div class="mobile-menu-wrapper">
+            <DesignSidebar />
+          </div>
+
+          <!-- Desktop sidebar shown only in non-editing mode -->
           <aside v-if="!isEditing && showSidebar" class="sidebar">
             <DesignSidebar />
           </aside>
@@ -121,7 +126,6 @@ const contentPath = computed(() => {
  */
 const checkContentFreshness = async () => {
   try {
-    // Use GitHub API to get latest commit for the file
     const response = await fetch(
       `https://api.github.com/repos/tiresomefanatic/test-nuxt/commits?path=${contentPath.value}&sha=${currentBranch.value}`,
       { headers: { Accept: "application/vnd.github.v3+json" } }
@@ -148,8 +152,6 @@ const checkContentFreshness = async () => {
 
 /**
  * Loads fresh content from GitHub.
- * This function ensures we always get the latest content by forcing a new fetch
- * and refreshing the local content state.
  */
 const loadContent = async (force = false) => {
   loading.value = true;
@@ -160,7 +162,6 @@ const loadContent = async (force = false) => {
       console.log(`Fetching fresh content at ${new Date().toISOString()}`);
       console.log(`Branch: ${currentBranch.value}, Path: ${contentPath.value}`);
 
-      // Get raw content from GitHub
       const content = await getRawContent(
         "tiresomefanatic",
         "test-nuxt",
@@ -168,55 +169,26 @@ const loadContent = async (force = false) => {
         currentBranch.value
       );
 
-      console.log("Raw content fetched:", {
-        length: content?.length || 0,
-        preview: content?.substring(0, 500),
-      });
-
-      // Update editor content
       editorContent.value = content;
 
       if (process.client) {
-        // Access Nuxt's content storage directly
         const nuxtApp = useNuxtApp();
         const storage = nuxtApp.$content?.storage;
 
-        console.log("Current content storage:", storage);
-
-        // Force Nuxt to clear its content cache
         if (storage) {
           await storage.clearAll();
-          console.log("Cleared content storage");
         }
 
-        // Reload the page content
         const query = !path
           ? queryContent().where({ _path: "/" })
           : queryContent().where({ _path: `/${path}` });
 
         const newData = await query.findOne();
-        console.log("New content fetched:", newData);
-
-        // Update the data reference
         data.value = newData;
-
-        // Add debug log for final data state
-        console.log("Final data state:", {
-          dataValue: data.value,
-          path: path,
-          contentPath: contentPath.value,
-        });
       }
-
-      console.log("Content loaded and refreshed successfully");
     }
   } catch (error) {
     console.error("Content loading error:", error);
-    console.error("Full error details:", {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-    });
     showToast({
       title: "Error",
       message: `Failed to load content from branch: ${currentBranch.value}`,
@@ -271,7 +243,6 @@ const handleSave = async (content: string) => {
   }
 
   try {
-    console.log(`Saving content to branch: ${currentBranch.value}`);
     const result = await saveFileContent(
       "tiresomefanatic",
       "test-nuxt",
@@ -326,9 +297,6 @@ watch(isEditing, async (newValue, oldValue) => {
 // Watch for branch changes
 watch(currentBranch, async (newBranch, oldBranch) => {
   if (newBranch !== oldBranch) {
-    console.log(
-      `Branch changed from ${oldBranch} to ${newBranch}, reloading content...`
-    );
     await loadContent(true);
   }
 });
@@ -340,23 +308,18 @@ watch(contentPath, async (newPath, oldPath) => {
   }
 });
 
-// Setup content refresh and event handlers only on client side
+// Setup content refresh and event handlers
 onMounted(() => {
   if (process.client) {
-    // Initial content load
     loadContent(true);
-
-    // Setup visibility change handler
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Setup polling only on client side
     const contentRefreshInterval = setInterval(async () => {
       if (!isEditing.value) {
         await loadContent();
       }
     }, 30000);
 
-    // Cleanup function
     onBeforeUnmount(() => {
       clearInterval(contentRefreshInterval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -365,8 +328,10 @@ onMounted(() => {
 });
 </script>
 
+# [...slug].vue
+
 <style>
-/* Global prose styles */
+/* Global prose styles - these are essential */
 .prose-content {
   max-width: 100%;
   width: 100%;
@@ -468,32 +433,42 @@ onMounted(() => {
 .page-wrapper {
   min-height: 100vh;
   position: relative;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .content-area {
   display: flex;
   background: white;
   min-height: calc(100vh - 64px);
+  position: relative;
+  width: 100%;
 }
 
 .content-area.editing-mode {
-  padding: 32px;
+  padding: 0;
 }
 
 .sidebar {
-  width: 240px;
+  width: 280px;
   flex-shrink: 0;
   background: white;
+  border-right: 1px solid #e5e7eb;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
 }
 
 .main-content {
   flex: 1;
-  max-width: 100%;
-  padding: 0;
+  min-width: 0; /* Prevent flex item from overflowing */
+  padding: 32px;
+  position: relative;
 }
 
 .main-content.with-sidebar {
-  padding: 0;
+  width: calc(100% - 280px);
 }
 
 .content-header {
@@ -502,6 +477,7 @@ onMounted(() => {
   justify-content: flex-end;
   background: white;
   border-bottom: 1px solid #e5e7eb;
+  margin: -32px -32px 32px -32px;
 }
 
 .edit-button {
@@ -525,5 +501,76 @@ onMounted(() => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   min-height: calc(100vh - 200px);
   margin: 0;
+  padding: 20px;
+  width: 100%;
+}
+
+/* Loading state styles */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Toast container styles */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1050;
+}
+
+/* Mobile menu wrapper styles */
+.mobile-menu-wrapper {
+  display: none;
+  position: relative;
+  z-index: 1000;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-wrapper {
+    display: block;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .main-content {
+    width: 100%;
+    padding: 16px;
+    padding-top: 80px;
+  }
+
+  .main-content.with-sidebar {
+    width: 100%;
+  }
+
+  .content-header {
+    margin: -16px -16px 16px -16px;
+    padding: 16px;
+  }
+
+  .editor-container {
+    padding: 16px;
+    margin: -16px;
+    width: calc(100% + 32px);
+    border-radius: 0;
+  }
+}
+
+/* Fix for mobile safari bottom bar */
+@supports (-webkit-touch-callout: none) {
+  .content-area {
+    min-height: -webkit-fill-available;
+  }
+
+  .sidebar {
+    height: -webkit-fill-available;
+  }
+
+  .editor-container {
+    min-height: -webkit-fill-available;
+  }
 }
 </style>

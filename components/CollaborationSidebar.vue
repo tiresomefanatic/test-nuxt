@@ -2,223 +2,224 @@
   <div class="collaboration-sidebar" :class="{ open }">
     <!-- Toggle button -->
     <button class="toggle-button" @click="toggleSidebar">
-      <svg class="icon" viewBox="0 0 24 24" width="24" height="24">
-        <path
-          v-if="!open"
-          fill="currentColor"
-          d="M21 15.75c0-.414-.336-.75-.75-.75H3.75a.75.75 0 0 0 0 1.5h16.5a.75.75 0 0 0 .75-.75ZM21 12c0-.414-.336-.75-.75-.75H3.75a.75.75 0 0 0 0 1.5h16.5a.75.75 0 0 0 .75-.75ZM3.75 9h16.5a.75.75 0 0 0 0-1.5H3.75a.75.75 0 0 0 0 1.5Z"
-        />
-        <path
-          v-else
-          fill="currentColor"
-          d="M5.72 5.72a.75.75 0 0 1 1.06 0L12 10.94l5.22-5.22a.75.75 0 1 1 1.06 1.06L13.06 12l5.22 5.22a.75.75 0 1 1-1.06 1.06L12 13.06l-5.22 5.22a.75.75 0 0 1-1.06-1.06L10.94 12 5.72 6.78a.75.75 0 0 1 0-1.06Z"
-        />
-      </svg>
+      <span v-if="!open">☰</span>
+      <span v-else>×</span>
     </button>
 
     <div class="sidebar-content">
       <!-- Navigation tabs -->
       <div class="tabs">
         <button
-          v-for="tab in tabs"
+          v-for="tab in availableTabs"
           :key="tab.id"
           class="tab-button"
           :class="{ active: activeTab === tab.id }"
-          @click="activeTab = tab.id"
+          @click="handleTabClick(tab.id)"
         >
           {{ tab.label }}
           <span v-if="tab.count" class="count">{{ tab.count }}</span>
         </button>
       </div>
 
-      <!-- Pull Requests Tab -->
-      <div v-if="activeTab === 'prs'" class="tab-content">
-        <div class="pr-actions-header">
-          <button
-            class="create-pr-button"
-            @click="showCreatePR = true"
-            v-if="!showCreatePR"
-          >
-            Create Pull Request
-          </button>
-        </div>
-
-        <CreatePullRequest
-          v-if="showCreatePR"
-          :branches="branches"
-          :currentBranch="currentBranch"
-          @created="handlePRCreated"
-          @cancel="showCreatePR = false"
-        />
-
-        <div v-else-if="loading" class="loading">
-          <div class="spinner"></div>
-          Loading pull requests...
-        </div>
-        <div v-else-if="pullRequests.length === 0" class="empty-state">
-          No open pull requests
-        </div>
-        <div v-else class="pr-list">
-          <div
-            v-for="pr in pullRequests"
-            :key="pr.number"
-            class="pr-item"
-            :class="{ 'has-conflicts': pr.mergeable === false }"
-          >
-            <div class="pr-header">
-              <span class="pr-number">#{{ pr.number }}</span>
-              <span class="pr-title">{{ pr.title }}</span>
-            </div>
-            <div class="pr-meta">
-              <span class="pr-author">
-                <img
-                  :src="pr.user.avatar_url"
-                  :alt="pr.user.login"
-                  class="author-avatar"
-                />
-                {{ pr.user.login }}
-              </span>
-              <span class="pr-status" :class="pr.mergeable_state">
-                {{ getPRStatus(pr) }}
-              </span>
-            </div>
-            <div class="pr-actions">
-              <button class="action-button view" @click="openPR(pr.html_url)">
-                View on GitHub
-              </button>
-              <button
-                v-if="pr.mergeable === false"
-                class="action-button resolve"
-                @click="resolveConflicts(pr)"
-              >
-                Resolve Conflicts
-              </button>
-            </div>
+      <!-- Content area -->
+      <div class="tab-content">
+        <!-- History Tab -->
+        <div v-if="activeTab === 'history'" class="history-tab">
+          <div v-if="loading" class="loading-state">
+            <div class="spinner"></div>
+            Loading commits...
           </div>
-        </div>
-      </div>
-
-      <!-- History Tab -->
-      <div v-if="activeTab === 'history'" class="tab-content">
-        <div v-if="loading" class="loading">
-          <div class="spinner"></div>
-          Loading commit history...
-        </div>
-        <div v-else-if="commits.length === 0" class="empty-state">
-          No commit history available
-        </div>
-        <div v-else class="commit-list">
-          <div v-for="commit in commits" :key="commit.sha" class="commit-item">
-            <div class="commit-header">
-              <span class="commit-message">{{ commit.commit.message }}</span>
-            </div>
-            <div class="commit-meta">
-              <span class="commit-author">
-                <img
-                  v-if="commit.author?.avatar_url"
-                  :src="commit.author.avatar_url"
-                  :alt="commit.commit.author.name"
-                  class="author-avatar"
-                />
-                {{ commit.commit.author.name }}
-              </span>
-              <span class="commit-date">
-                {{ formatDate(commit.commit.author.date) }}
-              </span>
-            </div>
+          <div v-else-if="commits.length === 0" class="empty-state">
+            No commit history available
           </div>
-        </div>
-      </div>
-
-      <!-- Conflicts Tab -->
-      <div v-if="activeTab === 'conflicts'" class="tab-content">
-        <div v-if="currentConflict" class="conflict-resolver">
-          <div class="conflict-header">
-            <h3>Resolve Conflicts</h3>
-            <p>Choose which changes to keep for {{ currentConflict.file }}</p>
-          </div>
-          <div class="conflict-diff">
-            <div class="diff-header">
-              <button
-                class="diff-button"
-                :class="{ active: selectedVersion === 'current' }"
-                @click="selectedVersion = 'current'"
-              >
-                Current Changes
-              </button>
-              <button
-                class="diff-button"
-                :class="{ active: selectedVersion === 'incoming' }"
-                @click="selectedVersion = 'incoming'"
-              >
-                Incoming Changes
-              </button>
-            </div>
-            <div class="diff-content">
-              <pre
-                v-if="selectedVersion === 'current'"
-                class="diff-view current"
-              >
-                {{ currentConflict.current }}
-              </pre>
-              <pre v-else class="diff-view incoming">
-                {{ currentConflict.incoming }}
-              </pre>
-            </div>
-          </div>
-          <div class="conflict-actions">
-            <button
-              class="action-button cancel"
-              @click="cancelConflictResolution"
+          <div v-else class="commit-list">
+            <div
+              v-for="commit in commits"
+              :key="commit.sha"
+              class="commit-item"
+              @click="openCommit(commit)"
+              :title="'Click to view on GitHub'"
             >
-              Cancel
-            </button>
-            <button class="action-button resolve" @click="resolveConflict">
-              Accept
-              {{ selectedVersion === "current" ? "Current" : "Incoming" }}
-              Changes
-            </button>
+              <div class="commit-header">
+                <div class="commit-message">{{ commit.commit.message }}</div>
+              </div>
+              <div class="commit-meta">
+                <div class="commit-author">
+                  <img
+                    v-if="commit.author?.avatar_url"
+                    :src="commit.author.avatar_url"
+                    :alt="commit.commit.author.name"
+                    class="author-avatar"
+                  />
+                  <span>{{ commit.commit.author.name }}</span>
+                </div>
+                <div class="commit-sha">
+                  {{ commit.sha.substring(0, 7) }}
+                </div>
+                <div class="commit-date">
+                  {{ formatDate(commit.commit.author.date) }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div v-else class="empty-state">No conflicts to resolve</div>
-      </div>
 
-      <!-- Branch Management Tab -->
-      <div v-if="activeTab === 'branches'" class="tab-content">
-        <div class="section">
-          <h3>Branch Management</h3>
-          <div v-if="isLoggedIn" class="branch-controls">
-            <div class="branch-controls">
-              <div class="current-branch">
-                <span class="label">Current Branch:</span>
-                <select :value="currentBranch" @change="handleBranchChange">
-                  <option
-                    v-for="branch in branches"
-                    :key="branch"
-                    :value="branch"
-                  >
-                    {{ branch }}
-                  </option>
-                </select>
+        <!-- Pull Requests Tab -->
+        <div v-if="activeTab === 'prs'">
+          <div class="pr-actions-header">
+            <button
+              class="create-pr-button"
+              @click="showCreatePR = true"
+              v-if="!showCreatePR"
+            >
+              Create Pull Request
+            </button>
+          </div>
+
+          <CreatePullRequest
+            v-if="showCreatePR"
+            :branches="branches"
+            :currentBranch="currentBranch"
+            @created="handlePRCreated"
+            @cancel="showCreatePR = false"
+          />
+
+          <div v-else-if="loading" class="loading-state">
+            Loading pull requests...
+          </div>
+          <div v-else-if="pullRequests.length === 0" class="empty-state">
+            No open pull requests
+          </div>
+          <div v-else class="pr-list">
+            <div
+              v-for="pr in pullRequests"
+              :key="pr.number"
+              class="pr-item"
+              :class="{ 'has-conflicts': pr.mergeable === false }"
+            >
+              <div class="pr-header">
+                <span class="pr-number">#{{ pr.number }}</span>
+                <span class="pr-title">{{ pr.title }}</span>
               </div>
-              <div class="new-branch">
-                <input
-                  v-model="newBranchName"
-                  placeholder="New branch name"
-                  @keyup.enter="createNewBranch"
-                />
-                <button
-                  class="create-branch"
-                  :disabled="!newBranchName || loading"
-                  @click="createNewBranch"
+              <div class="pr-meta">
+                <span class="pr-author">
+                  <img
+                    :src="pr.user.avatar_url"
+                    :alt="pr.user.login"
+                    class="author-avatar"
+                  />
+                  {{ pr.user.login }}
+                </span>
+                <span class="pr-status" :class="pr.mergeable_state">
+                  {{ getPRStatus(pr) }}
+                </span>
+              </div>
+              <div class="pr-actions">
+                <button class="action-button" @click="openPR(pr.html_url)">
+                  View on GitHub
+                </button>
+                <!-- <button
+                  v-if="pr.mergeable === false"
+                  class="action-button resolve"
+                  @click="handleResolveConflicts(pr)"
                 >
-                  Create Branch
+                  Resolve Conflicts
+                </button> -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Branches Tab -->
+        <div v-if="activeTab === 'branches'">
+          <div v-if="isLoggedIn" class="branch-controls">
+            <div class="branch-select-wrapper">
+              <label>Current Branch:</label>
+              <select
+                :value="currentBranch"
+                @change="handleBranchChange"
+                class="branch-select"
+              >
+                <option
+                  v-for="branch in branches"
+                  :key="branch"
+                  :value="branch"
+                >
+                  {{ branch }}
+                </option>
+              </select>
+            </div>
+
+            <button
+              v-if="!showNewBranchInput"
+              @click="showNewBranchInput = true"
+              class="create-branch-button"
+            >
+              Create New Branch
+            </button>
+
+            <div v-if="showNewBranchInput" class="new-branch-form">
+              <input
+                v-model="newBranchName"
+                placeholder="Enter branch name"
+                class="branch-input"
+              />
+              <div class="branch-actions">
+                <button
+                  @click="createNewBranch"
+                  :disabled="!newBranchName"
+                  class="create-button"
+                >
+                  Create
+                </button>
+                <button
+                  @click="showNewBranchInput = false"
+                  class="cancel-button"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
           </div>
           <div v-else class="login-prompt">
-            <p>Please log in to manage branches</p>
+            Please log in to manage branches
+          </div>
+        </div>
+
+        <!-- Saves Tab -->
+        <div v-if="activeTab === 'saves'">
+          <div v-if="localSaves.length === 0" class="empty-state">
+            No saved changes available
+          </div>
+          <div v-else class="saves-list">
+            <div
+              v-for="save in localSaves"
+              :key="save.timestamp"
+              class="save-item"
+            >
+              <div class="save-info">
+                <span class="save-timestamp">{{
+                  formatDate(save.timestamp)
+                }}</span>
+                <span class="save-branch">on branch {{ save.branch }}</span>
+              </div>
+              <div class="save-actions">
+                <button
+                  @click="$emit('load-save', save.content)"
+                  class="action-button"
+                >
+                  Load
+                </button>
+                <button
+                  @click="
+                    editorStore.deleteSave(props.filePath, save.timestamp)
+                  "
+                  class="action-button delete"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -230,30 +231,25 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useGithub } from "~/composables/useGithub";
 import { useToast } from "~/composables/useToast";
+import { useEditorStore } from "~/stores/editor";
 import CreatePullRequest from "./CreatePullRequest.vue";
 
-// Define TypeScript interfaces for our data structures
-interface GitHubUser {
-  login: string;
-  avatar_url: string;
-  name?: string;
-}
-
+// Type definitions
 interface PullRequest {
   number: number;
   title: string;
-  user: GitHubUser;
+  user: {
+    login: string;
+    avatar_url: string;
+  };
   html_url: string;
   mergeable: boolean;
   mergeable_state: string;
-  files?: Array<{
-    filename: string;
-    patch?: string;
-  }>;
 }
 
 interface Commit {
   sha: string;
+  html_url?: string; // Add this property
   commit: {
     message: string;
     author: {
@@ -266,260 +262,263 @@ interface Commit {
   };
 }
 
-interface Conflict {
-  file: string;
-  current: string;
-  incoming: string;
-  pr: PullRequest;
-}
+// Props & Emits
+const props = defineProps<{
+  filePath: string;
+}>();
 
-// Component state management
+const emit = defineEmits<{
+  (e: "load-save", content: string): void;
+}>();
+
+// State
 const open = ref(false);
-const activeTab = ref("branches");
+const activeTab = ref("history");
 const loading = ref(false);
+const commits = ref([]);
 const pullRequests = ref<PullRequest[]>([]);
-const commits = ref<Commit[]>([]);
-const currentConflict = ref<Conflict | null>(null);
-const selectedVersion = ref<"current" | "incoming">("current");
+const showNewBranchInput = ref(false);
 const newBranchName = ref("");
 const showCreatePR = ref(false);
 
-// Initialize composables
-const { showToast } = useToast();
+// Composables
 const {
-  getPullRequests,
-  getCommits,
-  resolveConflict: resolveGitHubConflict,
-  fetchBranches,
-  createBranch,
-  switchBranch,
+  isLoggedIn,
   currentBranch,
   branches,
-  isLoggedIn,
+  getCommits,
+  getPullRequests,
+  fetchBranches,
+  switchBranch,
+  createBranch,
+  resolveConflict,
 } = useGithub();
 
-// Computed properties for navigation tabs
-const tabs = computed(() => [
-  {
-    id: "prs",
-    label: "Pull Requests",
-    count: pullRequests.value.length,
-  },
-  {
-    id: "history",
-    label: "History",
-    count: commits.value.length,
-  },
-  {
-    id: "conflicts",
-    label: "Conflicts",
-    count: pullRequests.value.filter((pr) => pr.mergeable === false).length,
-  },
-  {
-    id: "branches",
-    label: "Branches",
-    count: branches.value.length,
-  },
-]);
+const { showToast } = useToast();
+const editorStore = useEditorStore();
 
-// Watch for login state changes
-watch(isLoggedIn, async (newValue) => {
-  if (newValue) {
-    await fetchBranches();
-  }
+// Computed
+const localSaves = computed(() => {
+  return editorStore.getSavedContents(props.filePath);
 });
 
-// Utility function to format dates consistently
-const formatDate = (date: string): string => {
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+const availableTabs = computed(() => [
+  { id: "history", label: "History", count: commits.value.length },
+  { id: "branches", label: "Branches", count: branches.value?.length || 0 },
+  { id: "prs", label: "Pull Requests", count: pullRequests.value?.length || 0 },
+  { id: "saves", label: "Saves", count: localSaves.value?.length || 0 },
+]);
+
+// Methods
+const toggleSidebar = () => {
+  open.value = !open.value;
 };
 
-// Get the status text for a pull request based on its mergeable state
+const handleTabClick = async (tabId: string) => {
+  activeTab.value = tabId;
+  if (tabId === "history") {
+    await loadCommits();
+  } else if (tabId === "prs") {
+    await loadPullRequests();
+  }
+};
+
+const loadCommits = async () => {
+  if (!isLoggedIn.value) return;
+
+  loading.value = true;
+  try {
+    const result = await getCommits();
+    if (result && Array.isArray(result)) {
+      commits.value = result;
+      console.log("Loaded commits:", commits.value);
+    }
+  } catch (error) {
+    console.error("Error loading commits:", error);
+    showToast({
+      title: "Error",
+      message: "Failed to load commit history",
+      type: "error",
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+const openCommit = (commit: Commit) => {
+  if (!commit.html_url) {
+    const url = `https://github.com/tiresomefanatic/test-nuxt/commit/${commit.sha}`;
+    window.open(url, "_blank");
+  } else {
+    window.open(commit.html_url, "_blank");
+  }
+};
+
+const loadPullRequests = async () => {
+  if (!isLoggedIn.value) return;
+
+  loading.value = true;
+  try {
+    const result = await getPullRequests();
+    if (result && Array.isArray(result)) {
+      pullRequests.value = result;
+      console.log("Loaded pull requests:", pullRequests.value);
+    }
+  } catch (error) {
+    console.error("Error loading pull requests:", error);
+    showToast({
+      title: "Error",
+      message: "Failed to load pull requests",
+      type: "error",
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleBranchChange = async (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  const branchName = target.value;
+
+  if (!branchName || branchName === currentBranch.value) return;
+
+  loading.value = true;
+  try {
+    const success = await switchBranch(branchName);
+    if (success) {
+      await loadCommits();
+      showToast({
+        title: "Success",
+        message: `Switched to branch: ${branchName}`,
+        type: "success",
+      });
+    }
+  } catch (error) {
+    console.error("Error switching branch:", error);
+    showToast({
+      title: "Error",
+      message: "Failed to switch branch",
+      type: "error",
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
+const createNewBranch = async () => {
+  if (!newBranchName.value) return;
+
+  loading.value = true;
+  try {
+    const result = await createBranch(newBranchName.value);
+    if (result) {
+      showToast({
+        title: "Success",
+        message: `Created branch: ${newBranchName.value}`,
+        type: "success",
+      });
+      newBranchName.value = "";
+      showNewBranchInput.value = false;
+      await loadCommits();
+    }
+  } catch (error) {
+    console.error("Error creating branch:", error);
+    showToast({
+      title: "Error",
+      message: "Failed to create branch",
+      type: "error",
+    });
+  } finally {
+    loading.value = false;
+  }
+};
+
 const getPRStatus = (pr: PullRequest): string => {
   if (pr.mergeable === false) return "Has Conflicts";
   if (pr.mergeable === true) return "Ready to Merge";
   return "Checking";
 };
 
-// Toggle sidebar visibility
-const toggleSidebar = () => {
-  open.value = !open.value;
-};
-
-// Handle external link clicks
 const openPR = (url: string) => {
   window.open(url, "_blank");
 };
 
-// Handle PR creation success
 const handlePRCreated = async () => {
   showCreatePR.value = false;
   await loadPullRequests();
 };
 
-// Conflict resolution handling
-const resolveConflicts = (pr: PullRequest) => {
-  if (!pr.files?.[0]) {
-    showToast("No files found in pull request", "error");
-    return;
-  }
-
-  currentConflict.value = {
-    file: pr.files[0].filename,
-    current: pr.files[0].patch || "",
-    incoming: pr.files[0].patch || "",
-    pr,
-  };
-  activeTab.value = "conflicts";
-};
-
-const resolveConflict = async () => {
-  if (!currentConflict.value) return;
-
+const handleResolveConflicts = async (pr: PullRequest) => {
   loading.value = true;
   try {
-    await resolveGitHubConflict(
-      currentConflict.value.pr.number,
-      currentConflict.value.file,
-      selectedVersion.value === "current" ? "ours" : "theirs"
-    );
-
-    showToast("Conflict resolved successfully!", "success");
-    currentConflict.value = null;
-    await loadPullRequests(); // Refresh PR list
+    await resolveConflict(pr.number);
+    await loadPullRequests();
+    showToast({
+      title: "Success",
+      message: "Conflicts resolved successfully",
+      type: "success",
+    });
   } catch (error) {
-    console.error("Error resolving conflict:", error);
-    showToast("Failed to resolve conflict. Please try again.", "error");
+    console.error("Error resolving conflicts:", error);
+    showToast({
+      title: "Error",
+      message: "Failed to resolve conflicts",
+      type: "error",
+    });
   } finally {
     loading.value = false;
   }
 };
 
-const cancelConflictResolution = () => {
-  currentConflict.value = null;
-  selectedVersion.value = "current";
-};
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-// Data loading functions
-const loadPullRequests = async () => {
-  loading.value = true;
-  try {
-    const prs = await getPullRequests();
-    pullRequests.value = prs;
-  } catch (error) {
-    console.error("Error loading pull requests:", error);
-    showToast("Failed to load pull requests", "error");
-  } finally {
-    loading.value = false;
+  if (days === 0) {
+    return "Today";
+  } else if (days === 1) {
+    return "Yesterday";
+  } else if (days < 7) {
+    return `${days} days ago`;
+  } else {
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   }
 };
 
-const loadCommits = async () => {
-  loading.value = true;
-  try {
-    const commitHistory = await getCommits();
-    commits.value = commitHistory;
-  } catch (error) {
-    console.error("Error loading commits:", error);
-    showToast("Failed to load commits", "error");
-  } finally {
-    loading.value = false;
-  }
-};
-
-// Initialize data when component mounts
-onMounted(async () => {
-  if (isLoggedIn.value) {
-    loading.value = true;
-    try {
-      await Promise.all([loadPullRequests(), loadCommits(), fetchBranches()]);
-    } finally {
-      loading.value = false;
-    }
+// Watch for login state
+watch(isLoggedIn, async (newValue) => {
+  if (newValue) {
+    await fetchBranches();
+    await loadCommits();
+    await loadPullRequests();
   }
 });
 
-// Handle branch switching
-const handleBranchChange = async (event: Event) => {
-  const select = event.target as HTMLSelectElement;
-  const branchName = select.value;
-
-  try {
-    loading.value = true;
-    console.log(`Attempting to switch to branch: ${branchName}`);
-    const success = await switchBranch(branchName);
-
-    if (success) {
-      showToast({
-        title: "Success",
-        message: `Switched to branch: ${branchName}`,
-        type: "success",
-      });
-      await fetchBranches(); // Refresh branch list
-    } else {
-      throw new Error("Failed to switch branch");
-    }
-  } catch (error) {
-    console.error("Error switching branch:", error);
-    showToast({
-      title: "Error",
-      message:
-        error instanceof Error ? error.message : "Failed to switch branch",
-      type: "error",
-    });
-    // Reset selection on error
-    select.value = currentBranch.value;
-  } finally {
-    loading.value = false;
+// Initialize
+onMounted(async () => {
+  if (isLoggedIn.value) {
+    await fetchBranches();
+    await loadCommits();
+    await loadPullRequests();
   }
-};
-
-// Create new branch
-const createNewBranch = async () => {
-  if (!newBranchName.value) return;
-
-  try {
-    loading.value = true;
-    console.log(`Creating new branch: ${newBranchName.value}`);
-    const result = await createBranch(newBranchName.value);
-
-    if (result) {
-      showToast({
-        title: "Success",
-        message: `Created and switched to branch: ${newBranchName.value}`,
-        type: "success",
-      });
-      await fetchBranches(); // Refresh branch list
-      newBranchName.value = ""; // Clear input
-    } else {
-      throw new Error("Failed to create branch");
-    }
-  } catch (error) {
-    console.error("Error creating branch:", error);
-    showToast({
-      title: "Error",
-      message:
-        error instanceof Error ? error.message : "Failed to create branch",
-      type: "error",
-    });
-  } finally {
-    loading.value = false;
-  }
-};
+});
 </script>
 
 <style scoped>
+/* Base sidebar structure */
 .collaboration-sidebar {
   position: fixed;
   top: 64px;
   right: -400px;
   width: 400px;
   height: calc(100vh - 64px);
-  background: white;
+  background: #ffffff;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
   transition: right 0.3s ease;
   z-index: 90;
@@ -536,20 +535,16 @@ const createNewBranch = async () => {
   top: 1rem;
   width: 40px;
   height: 40px;
-  background: white;
-  border: 1px solid #eee;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-right: none;
-  border-radius: 0.5rem 0 0 0.5rem;
+  border-radius: 4px 0 0 4px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: #666;
-  transition: all 0.2s;
-}
-
-.toggle-button:hover {
-  color: var(--echo-orange);
+  font-size: 20px;
+  color: #374151;
 }
 
 .sidebar-content {
@@ -559,9 +554,11 @@ const createNewBranch = async () => {
   overflow: hidden;
 }
 
+/* Tabs navigation */
 .tabs {
   display: flex;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
 }
 
 .tab-button {
@@ -569,120 +566,112 @@ const createNewBranch = async () => {
   padding: 1rem;
   border: none;
   background: none;
-  color: #666;
-  font-size: 0.875rem;
+  color: #374151;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   position: relative;
 }
 
-.tab-button.active {
-  color: var(--echo-orange);
+.tab-button:hover {
+  background: #f9fafb;
 }
 
-.tab-button.active::after {
-  content: "";
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--echo-orange);
+.tab-button.active {
+  background: #f3f4f6;
+  font-weight: 500;
 }
 
 .count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
-  margin-left: 0.5rem;
-  background: #eee;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  color: #666;
+  margin-left: 6px;
+  padding: 2px 6px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  font-size: 12px;
 }
 
+/* Content area */
 .tab-content {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
 }
 
-.loading {
+/* Loading and empty states */
+.loading-state {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1rem;
   padding: 2rem;
-  color: #666;
+  color: #6b7280;
 }
 
 .spinner {
   width: 1.5rem;
   height: 1.5rem;
-  border: 2px solid #eee;
-  border-right-color: var(--echo-orange);
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-state {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: #6b7280;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px dashed #e5e7eb;
 }
 
-.pr-list,
+/* Commit styles */
 .commit-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.pr-item,
 .commit-item {
   padding: 1rem;
-  border: 1px solid #eee;
-  border-radius: 0.5rem;
-  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.pr-item.has-conflicts {
-  border-color: #fecaca;
-  background: #fff5f5;
+.commit-item:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.pr-header,
 .commit-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.pr-number {
-  color: #666;
-  font-size: 0.875rem;
-}
-
-.pr-title,
 .commit-message {
+  color: #111827;
   font-weight: 500;
-  color: #333;
+  line-height: 1.4;
 }
 
-.pr-meta,
 .commit-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1rem;
   font-size: 0.875rem;
-  color: #666;
+  color: #6b7280;
 }
 
-.pr-author,
 .commit-author {
   display: flex;
   align-items: center;
@@ -695,10 +684,87 @@ const createNewBranch = async () => {
   border-radius: 50%;
 }
 
+.commit-sha {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #4b5563;
+  padding: 0.125rem 0.375rem;
+  background: #f3f4f6;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+/* Pull request styles */
+.pr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pr-actions-header {
+  margin-bottom: 1rem;
+}
+
+.create-pr-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-pr-button:hover {
+  background: #e5e7eb;
+}
+
+.pr-item {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.pr-item:hover {
+  background: #f9fafb;
+}
+
+.pr-item.has-conflicts {
+  border-color: #fca5a5;
+  background: #fee2e2;
+}
+
+.pr-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.pr-number {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.pr-title {
+  color: #111827;
+  font-weight: 500;
+}
+
+.pr-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
 .pr-status {
   padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
+  border-radius: 4px;
   font-size: 0.75rem;
+  background: #f3f4f6;
 }
 
 .pr-status.clean {
@@ -706,253 +772,234 @@ const createNewBranch = async () => {
   color: #166534;
 }
 
-.pr-status.unstable {
-  background: #fef9c3;
-  color: #854d0e;
-}
-
 .pr-status.dirty {
-  background: #fecaca;
+  background: #fee2e2;
   color: #991b1b;
 }
 
-.pr-actions,
-.commit-actions {
+.pr-actions {
   display: flex;
   gap: 0.5rem;
+  margin-top: 0.75rem;
 }
 
-.action-button {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #eee;
-  border-radius: 0.25rem;
-  background: white;
-  color: #666;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.action-button:hover {
-  border-color: var(--echo-orange);
-  color: var(--echo-orange);
-}
-
-.action-button.resolve {
-  background: var(--echo-orange);
-  color: white;
-  border-color: var(--echo-orange);
-}
-
-.action-button.resolve:hover {
-  background: white;
-}
-
-.conflict-resolver {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.conflict-header {
-  padding: 1rem;
-  border-bottom: 1px solid #eee;
-}
-
-.conflict-diff {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.diff-header {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: #f8f9fa;
-}
-
-.diff-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #eee;
-  border-radius: 0.25rem;
-  background: white;
-  color: #666;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.diff-button.active {
-  background: var(--echo-orange);
-  color: white;
-  border-color: var(--echo-orange);
-}
-
-.diff-content {
-  flex: 1;
-  overflow: auto;
-  padding: 1rem;
-}
-
-.diff-view {
-  margin: 0;
-  font-family: "Monaco", monospace;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-
-.diff-view.current {
-  color: #059669;
-}
-
-.diff-view.incoming {
-  color: #2563eb;
-}
-
-.conflict-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 1rem;
-  border-top: 1px solid #eee;
-}
-
-.section {
-  margin-bottom: 2rem;
-}
-
-h3 {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  color: #343a40;
-}
-
+/* Branch styles */
 .branch-controls {
   padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  color: #000;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.current-branch {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.branch-select-wrapper {
+  margin-bottom: 1rem;
 }
 
-.current-branch .label {
-  color: #000;
-  font-weight: 500;
-}
-
-.current-branch select {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
-  color: #000;
+.branch-select-wrapper label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #374151;
   font-size: 14px;
 }
 
-.new-branch {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.new-branch input {
+.branch-select {
   width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
   border-radius: 4px;
-  background: #fff;
-  color: #000;
+  background: #ffffff;
+  color: #374151;
   font-size: 14px;
 }
 
-.create-branch {
-  padding: 0.5rem;
-  background: #000;
-  color: #fff;
-  border: none;
+.create-branch-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
   border-radius: 4px;
+  color: #374151;
+  font-size: 14px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-.create-branch:disabled {
+.create-branch-button:hover {
+  background: #e5e7eb;
+}
+
+.new-branch-form {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 4px;
+}
+
+.branch-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  font-size: 14px;
+}
+
+.branch-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.branch-actions button {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-button {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.create-button:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.create-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.create-branch:hover:not(:disabled) {
-  background: #333;
+.cancel-button {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
 }
 
-.loading {
+.cancel-button:hover {
+  background: #f9fafb;
+}
+
+/* Saves styles */
+.saves-list {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #000;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #ccc;
-  border-top-color: #000;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.section h3 {
-  color: #000;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  padding: 0 1rem;
-}
-
-.login-prompt {
-  color: #6c757d;
-  font-size: 0.9rem;
-  text-align: center;
+.save-item {
   padding: 1rem;
-  background: #e9ecef;
-  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
 }
 
-.pr-actions-header {
-  margin-bottom: 1rem;
-  padding: 0 0 1rem;
-  border-bottom: 1px solid #eee;
+.save-item:hover {
+  background: #f9fafb;
 }
 
-.create-pr-button {
-  padding: 0.5rem 1rem;
-  background: #000;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
+.save-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.save-timestamp {
+  color: #111827;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
+  font-size: 0.875rem;
 }
 
-.create-pr-button:hover {
-  background: #1a1a1a;
+.save-branch {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.save-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Common action buttons */
+.action-button {
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: #f9fafb;
+}
+
+.action-button.delete {
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.action-button.delete:hover {
+  background: #fee2e2;
+}
+
+.action-button.resolve {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #374151;
+}
+
+.action-button.resolve:hover {
+  background: #e5e7eb;
+}
+
+/* Login prompt */
+.login-prompt {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px dashed #e5e7eb;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .collaboration-sidebar {
+    width: 100%;
+    right: -100%;
+  }
+
+  .toggle-button {
+    width: 48px;
+    height: 48px;
+    left: -48px;
+  }
+
+  .tab-content {
+    padding: 0.75rem;
+  }
+
+  .commit-meta,
+  .pr-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .commit-item,
+  .pr-item,
+  .save-item {
+    padding: 0.75rem;
+  }
+
+  .branch-controls,
+  .new-branch-form {
+    padding: 0.75rem;
+  }
 }
 </style>

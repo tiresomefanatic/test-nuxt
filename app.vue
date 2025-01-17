@@ -6,6 +6,7 @@
       <main class="mt-24">
         <NuxtLoadingIndicator />
         <NuxtPage />
+        <Toast />
       </main>
     </NuxtLayout>
   </div>

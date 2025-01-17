@@ -81,6 +81,12 @@ export const useGithub = () => {
     user.value = null;
   };
 
+  // Check if user is logged in
+  const isLoggedIn = computed(() => {
+    if (!process.client) return false;
+    return !!localStorage.getItem("github_token");
+  });
+
   // Fetch authenticated user data
   const fetchUserData = async (): Promise<GitHubUser | null> => {
     if (!process.client) return null;
@@ -101,51 +107,104 @@ export const useGithub = () => {
     }
   };
 
-  // Check if user is logged in
-  const isLoggedIn = computed(() => {
-    if (!process.client) return false;
-    return !!localStorage.getItem("github_token");
-  });
-
-  // Create a fork of a repository
-  const createRepositoryFork = async (owner: string, repo: string) => {
-    if (!isLoggedIn.value) return null;
+  // Fetch branches with improved error handling and logging
+  const fetchBranches = async () => {
+    if (!isLoggedIn.value) {
+      console.log("Not logged in, skipping branch fetch");
+      return [];
+    }
 
     try {
-      const { data } = await octokit.rest.repos.createFork({
-        owner,
-        repo,
-        name: repo,
+      console.log("Fetching branches...");
+      const { data } = await octokit.rest.repos.listBranches({
+        owner: "tiresomefanatic",
+        repo: "test-nuxt",
       });
+
+      const branchNames = data.map((branch) => branch.name);
+      console.log("Fetched branches:", branchNames);
+
+      // Update the branches ref
+      branches.value = branchNames;
+
+      // Verify current branch exists, if not switch to main
+      if (!branchNames.includes(currentBranch.value)) {
+        console.log(
+          `Current branch ${currentBranch.value} not found, switching to main`
+        );
+        currentBranch.value = "main";
+      }
+
       return data;
     } catch (error) {
-      console.error("Error creating fork:", error);
-      return null;
+      console.error("Error fetching branches:", error);
+      // Initialize with at least 'main' branch if fetch fails
+      branches.value = ["main"];
+      throw error;
+    }
+  };
+
+  // Switch branch with improved error handling
+  const switchBranch = async (branchName: string) => {
+    if (!isLoggedIn.value) {
+      console.log("Not logged in, cannot switch branches");
+      return false;
+    }
+
+    try {
+      console.log(`Switching to branch: ${branchName}`);
+
+      // Verify branch exists
+      const { data } = await octokit.rest.repos.getBranch({
+        owner: "tiresomefanatic",
+        repo: "test-nuxt",
+        branch: branchName,
+      });
+
+      if (data) {
+        currentBranch.value = branchName;
+        console.log(
+          `Successfully switched to branch: ${branchName}, currentBranch is now: ${currentBranch.value}`
+        );
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error(`Error switching to branch ${branchName}:`, error);
+      return false;
     }
   };
 
   // Create a new branch
-  const createNewBranch = async (
-    owner: string,
-    repo: string,
-    base: string,
-    newBranch: string
-  ) => {
+  const createBranch = async (branchName: string) => {
     if (!isLoggedIn.value) return null;
 
     try {
-      const { data: ref } = await octokit.rest.git.getRef({
-        owner,
-        repo,
-        ref: `heads/${base}`,
+      console.log(
+        `Creating new branch: ${branchName} from ${currentBranch.value}`
+      );
+
+      // Get current branch's latest commit
+      const { data: currentRef } = await octokit.rest.git.getRef({
+        owner: "tiresomefanatic",
+        repo: "test-nuxt",
+        ref: `heads/${currentBranch.value}`,
       });
 
+      // Create new branch from current branch
       await octokit.rest.git.createRef({
-        owner,
-        repo,
-        ref: `refs/heads/${newBranch}`,
-        sha: ref.object.sha,
+        owner: "tiresomefanatic",
+        repo: "test-nuxt",
+        ref: `refs/heads/${branchName}`,
+        sha: currentRef.object.sha,
       });
+
+      console.log(`Created branch ${branchName}, fetching updated branch list`);
+      await fetchBranches();
+
+      // Switch to new branch
+      console.log(`Switching to new branch: ${branchName}`);
+      currentBranch.value = branchName;
 
       return true;
     } catch (error) {
@@ -154,119 +213,7 @@ export const useGithub = () => {
     }
   };
 
-  // Create a pull request
-  const createNewPullRequest = async (
-    owner: string,
-    repo: string,
-    base: string,
-    head: string,
-    title: string,
-    body: string
-  ) => {
-    if (!isLoggedIn.value) return null;
-
-    try {
-      const { data } = await octokit.rest.pulls.create({
-        owner,
-        repo,
-        base,
-        head,
-        title,
-        body,
-      });
-      return data;
-    } catch (error) {
-      console.error("Error creating pull request:", error);
-      return null;
-    }
-  };
-
-  const getRawFileContent = async (
-    owner: string,
-    repo: string,
-    path: string,
-    branch?: string
-  ): Promise<string> => {
-    const targetBranch = branch || currentBranch.value;
-    const timestamp = Date.now(); // Add cache busting
-    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${targetBranch}/${path}?t=${timestamp}`;
-    console.log("Fetching from raw URL:", rawUrl);
-
-    const response = await fetch(rawUrl);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch content: ${response.statusText}`);
-    }
-
-    return response.text();
-  };
-
-  // Save or update a file in the repository
-  const saveFileContent = async (
-    owner: string,
-    repo: string,
-    path: string,
-    content: string,
-    message: string,
-    branch?: string
-  ) => {
-    if (!isLoggedIn.value) {
-      throw new Error("Authentication required to save content");
-    }
-
-    // Always use provided branch or current branch
-    const targetBranch = branch || currentBranch.value;
-    console.log(
-      `Saving to branch: ${targetBranch}, currentBranch is: ${currentBranch.value}`
-    );
-
-    try {
-      // First verify branch exists
-      await octokit.rest.repos.getBranch({
-        owner,
-        repo,
-        branch: targetBranch,
-      });
-
-      // Get current file if it exists
-      let sha: string | undefined;
-      try {
-        const { data } = await octokit.rest.repos.getContent({
-          owner,
-          repo,
-          path,
-          ref: targetBranch,
-        });
-        if ("sha" in data) {
-          sha = data.sha;
-          console.log(
-            `Found existing file in branch ${targetBranch}, sha: ${sha}`
-          );
-        }
-      } catch (error) {
-        console.log(
-          `No existing file found in branch ${targetBranch}, creating new file`
-        );
-      }
-
-      // Create the commit
-      const result = await octokit.rest.repos.createOrUpdateFileContents({
-        owner,
-        repo,
-        path,
-        message: `${message} [branch: ${targetBranch}]`,
-        content: btoa(unescape(encodeURIComponent(content))),
-        branch: targetBranch,
-        sha,
-      });
-
-      console.log(`Successfully saved to branch: ${targetBranch}`);
-      return result.data;
-    } catch (error) {
-      console.error(`Error saving to branch ${targetBranch}:`, error);
-      throw error;
-    }
-  };
-
+  // Get raw content with improved caching and error handling
   const getRawContent = async (
     owner: string,
     repo: string,
@@ -276,7 +223,7 @@ export const useGithub = () => {
     try {
       const targetBranch = branch || currentBranch.value;
 
-      // Only add a timestamp parameter to bypass cache
+      // Add timestamp to bypass cache
       const url = `https://raw.githubusercontent.com/${owner}/${repo}/${targetBranch}/${path}?t=${Date.now()}`;
 
       console.log("Fetching content from URL:", url);
@@ -312,40 +259,89 @@ export const useGithub = () => {
     }
   };
 
-  // Helper function to check if error is a "not found" error
-  const isNotFoundError = (error: any): boolean => {
-    return error?.response?.status === 404;
-  };
-
-  // Get file content from repository
-  const fetchFileContent = async (
+  // Save file content with improved error handling
+  const saveFileContent = async (
     owner: string,
     repo: string,
     path: string,
-    ref?: string
+    content: string,
+    message: string,
+    branch?: string,
+    force?: boolean,
+    sha?: string | null
   ) => {
-    if (!isLoggedIn.value) return null;
+    if (!isLoggedIn.value) {
+      throw new Error("Authentication required to save content");
+    }
 
-    const targetRef = ref || currentBranch.value;
+    // Use provided branch or current branch
+    const targetBranch = branch || currentBranch.value;
+    console.log(
+      `Saving to branch: ${targetBranch}, currentBranch is: ${currentBranch.value}`
+    );
+
     try {
-      const { data } = await octokit.request(
-        "GET /repos/{owner}/{repo}/contents/{path}",
-        {
-          owner,
-          repo,
-          path,
-          ref: targetRef,
-          headers: {
-            Accept: "application/vnd.github.raw+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-          },
+      // First verify branch exists
+      await octokit.rest.repos.getBranch({
+        owner,
+        repo,
+        branch: targetBranch,
+      });
+
+      let fileSha = sha;
+
+      // If no SHA provided and not forcing, try to get current file's SHA
+      if (!force && !fileSha) {
+        try {
+          const { data } = await octokit.rest.repos.getContent({
+            owner,
+            repo,
+            path,
+            ref: targetBranch,
+          });
+
+          if ("sha" in data) {
+            fileSha = data.sha;
+            console.log(
+              `Found existing file in branch ${targetBranch}, sha: ${fileSha}`
+            );
+          }
+        } catch (error) {
+          if (error.status !== 404) {
+            throw error;
+          }
+          console.log(
+            `No existing file found in branch ${targetBranch}, creating new file`
+          );
         }
+      }
+
+      // Prepare create/update params
+      const updateParams = {
+        owner,
+        repo,
+        path,
+        message: `${message} [branch: ${targetBranch}]`,
+        content: btoa(unescape(encodeURIComponent(content))),
+        branch: targetBranch,
+        sha: !force && fileSha ? fileSha : undefined,
+      };
+
+      // Create or update the file
+      const result = await octokit.rest.repos.createOrUpdateFileContents(
+        updateParams
       );
 
-      return data;
+      console.log(`Successfully saved to branch: ${targetBranch}`);
+      return result.data;
     } catch (error) {
-      console.error("Error getting file content:", error);
-      return null;
+      // Log detailed error information
+      console.error(`Error saving to branch ${targetBranch}:`, {
+        status: error.status,
+        message: error.message,
+        response: error.response?.data,
+      });
+      throw error;
     }
   };
 
@@ -396,6 +392,31 @@ export const useGithub = () => {
     }
   };
 
+  // Create a new pull request
+  const createNewPullRequest = async (
+    base: string,
+    head: string,
+    title: string,
+    body: string
+  ) => {
+    if (!isLoggedIn.value) return null;
+
+    try {
+      const { data } = await octokit.rest.pulls.create({
+        owner: "tiresomefanatic",
+        repo: "test-nuxt",
+        base,
+        head,
+        title,
+        body,
+      });
+      return data;
+    } catch (error) {
+      console.error("Error creating pull request:", error);
+      return null;
+    }
+  };
+
   // Resolve merge conflicts
   const resolveConflictInFile = async (
     prNumber: number,
@@ -413,27 +434,25 @@ export const useGithub = () => {
 
       const resolutionBranch = `conflict-resolution-${prNumber}-${Date.now()}`;
 
-      await createNewBranch(
-        "tiresomefanatic",
-        "test-nuxt",
-        pr.base.ref,
-        resolutionBranch
-      );
+      await createBranch(resolutionBranch);
 
-      const content =
-        resolution === "ours"
-          ? await fetchFileContent(
-              "tiresomefanatic",
-              "test-nuxt",
-              filePath,
-              pr.base.ref
-            )
-          : await fetchFileContent(
-              "tiresomefanatic",
-              "test-nuxt",
-              filePath,
-              pr.head.ref
-            );
+      // Get content based on resolution choice
+      let content;
+      if (resolution === "ours") {
+        content = await getRawContent(
+          "tiresomefanatic",
+          "test-nuxt",
+          filePath,
+          pr.base.ref
+        );
+      } else {
+        content = await getRawContent(
+          "tiresomefanatic",
+          "test-nuxt",
+          filePath,
+          pr.head.ref
+        );
+      }
 
       if (!content) {
         throw new Error("Could not get file content");
@@ -455,105 +474,16 @@ export const useGithub = () => {
     }
   };
 
-  // Get all branches
-  const fetchBranches = async () => {
-    if (!isLoggedIn.value) return [];
-
-    try {
-      console.log("Fetching branches...");
-      const { data } = await octokit.rest.repos.listBranches({
-        owner: "tiresomefanatic",
-        repo: "test-nuxt",
-      });
-
-      console.log(
-        "Fetched branches:",
-        data.map((b) => b.name)
-      );
-      branches.value = data.map((branch) => branch.name);
-
-      // If current branch is not in the list, switch to main
-      if (!branches.value.includes(currentBranch.value)) {
-        console.log(
-          `Current branch ${currentBranch.value} not found, switching to main`
-        );
-        currentBranch.value = "main";
-      }
-
-      return data;
-    } catch (error) {
-      console.error("Error fetching branches:", error);
-      return [];
+  // Initial setup
+  if (process.client) {
+    // Fetch user data on initialization if logged in
+    if (isLoggedIn.value) {
+      fetchUserData();
+      fetchBranches();
     }
-  };
+  }
 
-  // Create a new branch
-  const createBranch = async (branchName: string) => {
-    if (!isLoggedIn.value) return null;
-
-    try {
-      console.log(
-        `Creating new branch: ${branchName} from ${currentBranch.value}`
-      );
-
-      // Get current branch's latest commit
-      const { data: currentRef } = await octokit.rest.git.getRef({
-        owner: "tiresomefanatic",
-        repo: "test-nuxt",
-        ref: `heads/${currentBranch.value}`,
-      });
-
-      // Create new branch from current branch
-      await octokit.rest.git.createRef({
-        owner: "tiresomefanatic",
-        repo: "test-nuxt",
-        ref: `refs/heads/${branchName}`,
-        sha: currentRef.object.sha,
-      });
-
-      console.log(`Created branch ${branchName}, fetching updated branch list`);
-      await fetchBranches();
-
-      // Switch to new branch
-      console.log(`Switching to new branch: ${branchName}`);
-      currentBranch.value = branchName;
-
-      return true;
-    } catch (error) {
-      console.error("Error creating branch:", error);
-      return null;
-    }
-  };
-
-  // Switch branch
-  const switchBranch = async (branchName: string) => {
-    if (!isLoggedIn.value) return false;
-
-    try {
-      console.log(`Switching to branch: ${branchName}`);
-
-      // Verify branch exists
-      const { data } = await octokit.rest.repos.getBranch({
-        owner: "tiresomefanatic",
-        repo: "test-nuxt",
-        branch: branchName,
-      });
-
-      if (data) {
-        currentBranch.value = branchName;
-        console.log(
-          `Successfully switched to branch: ${branchName}, currentBranch is now: ${currentBranch.value}`
-        );
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error(`Error switching to branch ${branchName}:`, error);
-      return false;
-    }
-  };
-
-  // Return all functions with explicit names to avoid TypeScript errors
+  // Return the composable API
   return {
     user,
     loading,

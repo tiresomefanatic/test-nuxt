@@ -5,7 +5,10 @@ export default defineNuxtConfig({
     "@nuxt/content", // Handles markdown content
     "@nuxt/ui", // Provides UI components
     "nuxt-monaco-editor", // Code editor
+    "@pinia/nuxt", // State management
   ],
+
+  css: ["~/assets/css/content.css"],
 
   // Components configuration
   components: {
@@ -84,6 +87,8 @@ export default defineNuxtConfig({
       siteUrl: process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
         : process.env.NUXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      githubOwner: "tiresomefanatic",
+      githubRepo: "test-nuxt",
     },
   },
 

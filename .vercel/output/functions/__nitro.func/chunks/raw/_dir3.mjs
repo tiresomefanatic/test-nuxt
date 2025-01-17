@@ -1,0 +1,5 @@
+// ROLLUP_NO_REPLACE 
+ const _dir = "{\"parsed\":{\"_path\":\"/design/foundation/_dir\",\"_dir\":\"foundation\",\"_draft\":false,\"_partial\":true,\"_locale\":\"\",\"title\":\"Foundation\",\"description\":\"Core design foundations and principles\",\"navigation\":true,\"items\":[{\"title\":\"Introduction\",\"path\":\"/design/foundation/introduction\"},{\"title\":\"Color\",\"path\":\"/design/foundation/color\"},{\"title\":\"Typography\",\"path\":\"/design/foundation/typography\"},{\"title\":\"Icons\",\"path\":\"/design/foundation/icons\"},{\"title\":\"Layout\",\"path\":\"/design/foundation/layout\"},{\"title\":\"Imagery\",\"path\":\"/design/foundation/imagery\"},{\"title\":\"Animation\",\"path\":\"/design/foundation/animation\"},{\"title\":\"Applications\",\"path\":\"/design/foundation/applications\"}],\"_id\":\"content:design:foundation:_dir.yaml\",\"_type\":\"yaml\",\"_source\":\"content\",\"_file\":\"design/foundation/_dir.yaml\",\"_stem\":\"design/foundation/_dir\",\"_extension\":\"yaml\"},\"hash\":\"hbkfvjugUw\"}";
+
+export { _dir as default };
+//# sourceMappingURL=_dir3.mjs.map

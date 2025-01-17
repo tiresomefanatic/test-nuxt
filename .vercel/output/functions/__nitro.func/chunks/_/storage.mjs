@@ -1,4 +1,4 @@
-import { k as kebabCase, l as defu, m as isRelative, n as destr, o as camelCase, q as joinURL, u as useRuntimeConfig, t as isPreview, v as prefixStorage, w as useStorage, x as withLeadingSlash, y as withoutTrailingSlash, z as getPreview, A as hash, j as useNitroApp } from '../nitro/nitro.mjs';
+import { k as kebabCase, l as defu, m as isRelative, n as destr, o as extname, q as camelCase, t as joinURL, u as useRuntimeConfig, v as isPreview, w as prefixStorage, x as useStorage, y as withLeadingSlash, z as withoutTrailingSlash, A as getPreview, B as hash, j as useNitroApp } from '../nitro/nitro.mjs';
 import { unified } from 'unified';
 import { d as defineTransformer, g as generatePath, p as pathMeta } from './path-meta.mjs';
 import { toString } from 'mdast-util-to-string';
@@ -145,19 +145,6 @@ function createQuery(fetcher, opts = {}) {
   }
   return query;
 }
-
-const _DRIVE_LETTER_START_RE = /^[A-Za-z]:\//;
-function normalizeWindowsPath(input = "") {
-  if (!input) {
-    return input;
-  }
-  return input.replace(/\\/g, "/").replace(_DRIVE_LETTER_START_RE, (r) => r.toUpperCase());
-}
-const _EXTNAME_RE = /.(\.[^./]+)$/;
-const extname = function(p) {
-  const match = _EXTNAME_RE.exec(normalizeWindowsPath(p));
-  return match && match[1] || "";
-};
 
 function createTokenizer(parser, initialize, from) {
   let point = Object.assign(

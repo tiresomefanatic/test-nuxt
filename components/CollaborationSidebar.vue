@@ -500,6 +500,27 @@ watch(isLoggedIn, async (newValue) => {
   }
 });
 
+// Watch for active tab changes
+watch(activeTab, async (newTab) => {
+  if (newTab === 'prs') {
+    await loadPullRequests();
+  }
+});
+
+// Refresh PRs periodically when PR tab is active
+watch([activeTab, isLoggedIn], () => {
+  if (activeTab.value === 'prs' && isLoggedIn.value) {
+    const interval = setInterval(async () => {
+      if (activeTab.value === 'prs') {
+        await loadPullRequests();
+      }
+    }, 30000); // Refresh every 30 seconds
+
+    // Cleanup interval when tab changes or component unmounts
+    return () => clearInterval(interval);
+  }
+});
+
 // Initialize
 onMounted(async () => {
   if (isLoggedIn.value) {

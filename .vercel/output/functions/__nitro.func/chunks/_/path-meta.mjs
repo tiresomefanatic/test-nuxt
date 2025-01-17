@@ -1,4 +1,4 @@
-import { B as pascalCase, x as withLeadingSlash, y as withoutTrailingSlash } from '../nitro/nitro.mjs';
+import { C as pascalCase, y as withLeadingSlash, z as withoutTrailingSlash } from '../nitro/nitro.mjs';
 import slugify from 'slugify';
 
 const defineTransformer = (transformer) => {

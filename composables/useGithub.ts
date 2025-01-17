@@ -402,6 +402,23 @@ export const useGithub = () => {
     if (!isLoggedIn.value) return null;
 
     try {
+      // Validate both branches exist
+      try {
+        await octokit.rest.repos.getBranch({
+          owner: "tiresomefanatic",
+          repo: "test-nuxt",
+          branch: base,
+        });
+        await octokit.rest.repos.getBranch({
+          owner: "tiresomefanatic",
+          repo: "test-nuxt",
+          branch: head,
+        });
+      } catch (error) {
+        console.error("Branch validation failed:", error);
+        throw new Error(`One or both branches (${base}, ${head}) do not exist`);
+      }
+
       const { data } = await octokit.rest.pulls.create({
         owner: "tiresomefanatic",
         repo: "test-nuxt",
@@ -413,7 +430,7 @@ export const useGithub = () => {
       return data;
     } catch (error) {
       console.error("Error creating pull request:", error);
-      return null;
+      throw error;
     }
   };
 

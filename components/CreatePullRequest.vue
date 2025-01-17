@@ -4,14 +4,14 @@
     <h3 class="form-title">Create Pull Request</h3>
 
     <div class="form-group">
-      <label for="base">Base Branch</label>
+      <label for="base">Target Branch (merge into)</label>
       <select
         id="base"
         v-model="baseBranch"
         class="form-select"
         :disabled="loading"
       >
-        <option value="">Select base branch</option>
+        <option value="">Select target branch</option>
         <option v-for="branch in props.branches" :key="branch" :value="branch">
           {{ branch }}
         </option>
@@ -22,7 +22,7 @@
     </div>
 
     <div class="form-group">
-      <label for="head">Source Branch</label>
+      <label for="head">Source Branch (merge from)</label>
       <select
         id="head"
         v-model="headBranch"
@@ -46,7 +46,7 @@
         v-model="title"
         type="text"
         class="form-input"
-        placeholder="Enter PR title"
+        :placeholder="titlePlaceholder"
         :disabled="loading"
       />
       <span class="validation-error" v-if="showValidation && !title.trim()">
@@ -69,10 +69,10 @@
     <div class="validation-summary" v-if="showValidation && !isValid">
       <p>Please fix the following issues:</p>
       <ul>
-        <li v-if="!baseBranch">Select a base branch</li>
+        <li v-if="!baseBranch">Select a target branch</li>
         <li v-if="!headBranch">Select a source branch</li>
         <li v-if="baseBranch === headBranch && baseBranch">
-          Base and source branches must be different
+          Target and source branches must be different
         </li>
         <li v-if="!title.trim()">Enter a title for the pull request</li>
       </ul>
@@ -108,7 +108,7 @@ const props = defineProps<{
   currentBranch: string;
 }>();
 
-const { createNewPullRequest } = useGithub();
+const { createNewPullRequest, user } = useGithub();
 const { showToast } = useToast();
 
 const emit = defineEmits<{
@@ -130,6 +130,13 @@ onMounted(() => {
 });
 
 // Computed properties
+const titlePlaceholder = computed(() => {
+  if (headBranch.value && baseBranch.value) {
+    return `${user.value?.login || 'user'} wants to merge from ${headBranch.value} into ${baseBranch.value}`;
+  }
+  return 'Enter PR title';
+});
+
 const isValid = computed(() => {
   return (
     baseBranch.value &&
@@ -148,8 +155,6 @@ const handleSubmit = async () => {
   loading.value = true;
   try {
     const result = await createNewPullRequest(
-      "tiresomefanatic",
-      "test-nuxt",
       baseBranch.value,
       headBranch.value,
       title.value,
@@ -162,18 +167,19 @@ const handleSubmit = async () => {
         message: "Pull request created successfully",
         type: "success",
       });
+      // Reset form
+      title.value = "";
+      description.value = "";
+      baseBranch.value = "";
+      headBranch.value = "";
+      // Emit created event
       emit("created");
-    } else {
-      throw new Error("Failed to create pull request");
     }
   } catch (error) {
     console.error("Error creating pull request:", error);
     showToast({
       title: "Error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "Failed to create pull request",
+      message: error instanceof Error ? error.message : "Failed to create pull request",
       type: "error",
     });
   } finally {

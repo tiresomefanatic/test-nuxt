@@ -1,0 +1,1 @@
+import{g as t,o,c as a,D as n}from"./DpbXZn14.js";const r={class:"content-wrapper"},l=t({__name:"ContentWrapper",props:{unwrap:{type:Boolean,default:!1}},setup(s){return(e,p)=>(o(),a("div",r,[n(e.$slots,"default")]))}});export{l as default};

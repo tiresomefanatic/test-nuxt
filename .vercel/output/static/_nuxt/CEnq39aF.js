@@ -1,0 +1,1 @@
+import s from"./7tTpqkYT.js";import{a as t,o as a,c as o,d as n,b as d,D as c}from"./DpbXZn14.js";const r={class:"design-layout"},_={class:"design-content"},i={__name:"design",setup(l){return(e,p)=>(a(),o("div",r,[n(s),d("div",_,[c(e.$slots,"default",{},void 0,!0)])]))}},m=t(i,[["__scopeId","data-v-2a10b014"]]);export{m as default};

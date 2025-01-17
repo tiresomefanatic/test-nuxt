@@ -179,10 +179,13 @@ const route = useRoute();
 
 .search {
   @apply relative flex items-center bg-[#F3F3F3] pl-3 rounded-[8px];
+  flex-grow: 1;
 }
 
 .search-input {
-  @apply w-64 pl-0 pr-8 py-2 max-h-[32px] bg-transparent border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply w-full pl-0 pr-8 py-2 max-h-[32px] bg-transparent border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed;
+  width: 100%;
+  max-width: 300px;
 }
 
 .search-divider {

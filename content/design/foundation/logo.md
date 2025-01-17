@@ -1,7 +1,7 @@
 <div style="display: flex; gap: 2rem;">
 <div style="flex: 1; max-width: 800px;">
 <h1>
-<strong>Logokhkistanta</strong>
+<strong>Logokhkistakjdnew commit </strong>
 </h1>
 <p>
 Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.

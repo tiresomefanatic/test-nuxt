@@ -1,6 +1,6 @@
 <div style="display: flex; gap: 2rem;">
   <div style="flex: 1; max-width: 800px;">
-    <h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem">Typography</h1>
+    <h1 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1rem">kjhnkndfdadsadsadvkjn</h1>
     <p style="margin: 1rem 0; line-height: 1.6">Lorem ipsum dolor sit amet consectetur. Et ut ultrices dolor ut. Vitae pharetra rutrum dolor vestibulum pharetra et. Pretium consectetur venenatis lacus quam non ipsum.</p>
     
 <div style="display: flex; gap: 2rem; margin: 3rem 0;">

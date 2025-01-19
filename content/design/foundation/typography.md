@@ -5,7 +5,7 @@
     
 <div style="display: flex; gap: 2rem; margin: 3rem 0;">
       <div style="flex: 1;">
-        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4">bvbvbvbvbshbjtypeface</h2>
+        <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4">lolololovbshbjtypeface</h2>
       </div>
       <div style="flex: 2;">
         <img src="/images/type-1.png" alt="Primary typeface section" style="width: 100%; margin-bottom: 1.5rem;" />

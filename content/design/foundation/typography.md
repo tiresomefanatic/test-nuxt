@@ -15,6 +15,8 @@
 <div style="display: flex; gap: 2rem; margin: 3rem 0;">
       <div style="flex: 1;">
         <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600; line-height: 1.4">Typeface weight</h2>
+      ![Image](https://raw.githubusercontent.com/tiresomefanatic/test-nuxt/main/public/images/1737334008966-Screenshot-2025-01-20-at-12.24.26-AM.png)
+       
       </div>
       <div style="flex: 2;">
         <img src="/images/type-2.png" alt="Typeface weight section" style="width: 100%; margin-bottom: 1.5rem;" />
